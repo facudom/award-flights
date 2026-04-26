@@ -93,6 +93,9 @@ async function handleSaveAlert(req, env) {
   alerts.push(alert);
   await env.ALERTS_KV.put('alerts', JSON.stringify(alerts));
 
+  // Immediately check the new alert for existing availability
+  checkSingleAlert(alert, env);
+
   // Send confirmation via Telegram
   const dests = alert.destinations.join(', ');
   const msg = `✅ Alert created!\n\n` +
@@ -116,6 +119,13 @@ async function handleDeleteAlert(url, env) {
   return Response.json({ ok: true }, { headers: cors() });
 }
 
+// ── Single alert check (runs on creation) ────────────────────────
+async function checkSingleAlert(alert, env) {
+  const apiKey = await env.ALERTS_KV.get('seatsaero_key');
+  if (!apiKey) return;
+  await checkAlert(alert, apiKey, '🔍 Immediate check on alert creation');
+}
+
 // ── Daily alert checker ──────────────────────────────────────────
 async function checkAlerts(env) {
   const apiKey = await env.ALERTS_KV.get('seatsaero_key');
@@ -129,6 +139,11 @@ async function checkAlerts(env) {
   if (!alerts.length) return;
 
   for (const alert of alerts) {
+    await checkAlert(alert, apiKey, '🚨');
+  }
+}
+
+async function checkAlert(alert, apiKey, prefix = '🚨') {
     const hits = [];
 
     for (const dest of alert.destinations) {
@@ -170,19 +185,20 @@ async function checkAlerts(env) {
     }
 
     if (hits.length) {
-      // Sort by miles asc
       hits.sort((a, b) => a.miles - b.miles);
       const lines = hits.slice(0, 10).map(h =>
         `  • ${h.date.slice(0,10)} ${alert.origin}→${h.dest} via ${h.src}: ${h.miles.toLocaleString('en-US')} mi${h.direct ? ' ✈ direct' : ''}`
       ).join('\n');
 
-      const msg = `🚨 Alert hit! ${alert.origin} → ${alert.destinations.join('/')}\n\n` +
+      const msg = `${prefix} ${alert.origin} → ${alert.destinations.join('/')}\n\n` +
         `${hits.length} option${hits.length>1?'s':''} under ${Number(alert.maxMiles).toLocaleString('en-US')} miles:\n\n` +
         `${lines}${hits.length > 10 ? `\n  ...and ${hits.length-10} more` : ''}\n\n` +
         `👉 https://facudom.github.io/award-flights/`;
       await sendTelegram(msg);
+    } else if (prefix !== '🚨') {
+      // Only report "nothing found" on immediate check, not daily (to avoid spam)
+      await sendTelegram(`🔍 Immediate check: no availability found yet for ${alert.origin} → ${alert.destinations.join(',')} under ${Number(alert.maxMiles).toLocaleString('en-US')} miles. I'll keep checking daily.`);
     }
-  }
 }
 
 // ── Telegram ─────────────────────────────────────────────────────
