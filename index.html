@@ -1802,6 +1802,7 @@ async function fetchDest(dest, start, end, apiKey, onStatus) {
         if (inRange || isStart || isEnd) el.classList.add('drp-in-range');
         el.addEventListener('mouseenter', () => drpHover(d));
         el.addEventListener('click',      () => drpPick(d));
+        el.addEventListener('touchend',   (e) => { e.preventDefault(); drpPick(d); });
       }
       grid.appendChild(el);
     }
