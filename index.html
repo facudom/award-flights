@@ -243,15 +243,15 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(.5); cursor
 
 .drp-overlay {
   display: none; position: fixed; inset: 0; z-index: 9000;
-  background: rgba(0,0,0,.55);
+  background: rgba(0,0,0,.55); overflow-y: auto;
 }
-.drp-overlay.open { display: flex; align-items: center; justify-content: center; }
+.drp-overlay.open { display: flex; align-items: center; justify-content: center; padding: 12px; }
 
 .drp-popup {
   background: #0d1528; border: 1px solid var(--border2);
   border-radius: 16px; padding: 20px 24px 16px;
   box-shadow: 0 24px 80px rgba(0,0,0,.7);
-  min-width: 580px;
+  min-width: 580px; max-width: calc(100vw - 24px);
 }
 .drp-header { display: flex; align-items: flex-start; gap: 12px; }
 .drp-nav {
@@ -264,6 +264,13 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(.5); cursor
 }
 .drp-nav:hover { background: var(--panel2); }
 .drp-months { display: flex; gap: 28px; flex: 1; }
+@media (max-width: 600px) {
+  .drp-popup { min-width: 0; width: 100%; padding: 16px 16px 14px; }
+  .drp-months { gap: 0; }
+  .drp-months .drp-month:last-child { display: none; }
+  .drp-footer { flex-wrap: wrap; }
+  .drp-done, .drp-clear { padding: 10px 20px; font-size: 14px; }
+}
 .drp-month { flex: 1; }
 .drp-month-title {
   text-align: center; font-weight: 700; font-size: 14px;
@@ -1923,7 +1930,7 @@ async function startSearch() {
     const raw = nested.flat();
     const uniqueSrcs = [...new Set(raw.map(r => r.Source || r.Route?.Source || '?'))];
     const withJ = raw.filter(r => r.JMileageCostRaw > 0 || r.YMileageCostRaw > 0 || r.WMileageCostRaw > 0);
-    // Filter: only business class with mileage cost, AND only selected programs
+    // Filter: any cabin with mileage cost, AND only selected programs
     allResults = raw.filter(r => {
       if (!(r.JMileageCostRaw > 0 || r.YMileageCostRaw > 0 || r.WMileageCostRaw > 0)) return false;
       const src = r.Source || r.Route?.Source || '';
@@ -1942,7 +1949,7 @@ async function startSearch() {
     dbg.style.display = 'block';
 
     if (allResults.length === 0) {
-      showError('No business class availability found. Try expanding the date range or selecting more programs.');
+      showError('No availability found. Try expanding the date range or selecting more programs.');
     } else {
       displayResults();
     }
@@ -1970,8 +1977,8 @@ function getVal(r, col) {
     case 'prog':    return prog;
     case 'yecon':   return r.YMileageCostRaw || 999_999_999;
     case 'wpremeco':return r.WMileageCostRaw || 999_999_999;
-    case 'miles':   return r.JMileageCostRaw || 999_999_999;
-    case 'amex':    return r.JMileageCostRaw || 999_999_999;
+    case 'miles':   return r.JMileageCostRaw || r.WMileageCostRaw || r.YMileageCostRaw || 999_999_999;
+    case 'amex':    return r.JMileageCostRaw || r.WMileageCostRaw || r.YMileageCostRaw || 999_999_999;
     case 'seats':   return r.JRemainingSeats ?? 0;
     case 'direct':  return r.JDirect ? 0 : 1;
     case 'taxes':   return r.JTotalTaxesRaw ?? 999_999;
@@ -2072,12 +2079,13 @@ function renderTable() {
 function renderSummary() {
   const n = allResults.length;
   document.getElementById('sum-total').textContent    = n.toLocaleString('en-US');
-  document.getElementById('sum-sub-total').textContent = 'business class options';
+  document.getElementById('sum-sub-total').textContent = 'options found';
 
-  const withMiles = allResults.filter(r => r.JMileageCostRaw > 0);
+  const bestMiles = r => r.JMileageCostRaw || r.WMileageCostRaw || r.YMileageCostRaw || 0;
+  const withMiles = allResults.filter(r => bestMiles(r) > 0);
   if (withMiles.length) {
-    const cheapest  = Math.min(...withMiles.map(r => r.JMileageCostRaw));
-    const cheapRow  = withMiles.find(r => r.JMileageCostRaw === cheapest);
+    const cheapest  = Math.min(...withMiles.map(r => bestMiles(r)));
+    const cheapRow  = withMiles.find(r => bestMiles(r) === cheapest);
     const cDest     = cheapRow?.Route?.DestinationAirport || cheapRow?.DestinationAirport || '';
     const cProg     = cheapRow?.Source || cheapRow?.Route?.Source || '';
     document.getElementById('sum-cheapest').textContent    = cheapest.toLocaleString('en-US') + ' mi';
@@ -2085,7 +2093,7 @@ function renderSummary() {
       [AIRPORTS[cDest] || cDest, PROGRAMS[cProg]?.short || cProg].filter(Boolean).join(' · ');
   }
 
-  const under = allResults.filter(r => r.JMileageCostRaw > 0 && r.JMileageCostRaw < 100_000).length;
+  const under = allResults.filter(r => bestMiles(r) > 0 && bestMiles(r) < 100_000).length;
   document.getElementById('sum-under100k').textContent = under.toLocaleString('en-US');
 
   const counts = {};
