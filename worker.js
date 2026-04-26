@@ -124,7 +124,7 @@ async function handleTelegramWebhook(req, env) {
   const text    = msg.text.trim();
 
   // ── Bot commands ──
-  if (text.startsWith('/list')) {
+if (text.startsWith('/list')) {
     const raw = await env.ALERTS_KV.get(`alerts:${chatId}`);
     const alerts = raw ? JSON.parse(raw) : [];
     if (!alerts.length) {
