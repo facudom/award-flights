@@ -857,22 +857,23 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
 
   <!-- New alert form -->
   <div id="alert-form" style="display:none;background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:16px;margin-bottom:14px">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:120px 1fr 1fr;gap:12px;margin-bottom:12px">
       <div class="field">
         <label>Origin</label>
         <input type="text" id="al-origin" value="EZE" maxlength="3" style="text-transform:uppercase;font-weight:700;letter-spacing:2px">
       </div>
       <div class="field">
-        <label>Destinations</label>
-        <input type="text" id="al-dests" placeholder="e.g. NRT,HND,KIX" style="font-size:12px">
+        <label>Destinations <span style="color:var(--muted);font-weight:400">— type ASIA to expand</span></label>
+        <input type="text" id="al-dests" placeholder="e.g. ASIA or NRT,HND,KIX" style="font-size:12px" oninput="alExpandKeywords(this,'dest')">
       </div>
       <div class="field">
-        <label>Start Date</label>
-        <input type="date" id="al-start">
-      </div>
-      <div class="field">
-        <label>End Date</label>
-        <input type="date" id="al-end">
+        <label>Date Range</label>
+        <div class="drp-trigger" id="al-drp-trigger" onclick="alDrpOpen()">
+          <span class="drp-icon">📅</span>
+          <span id="al-drp-label">Select dates</span>
+        </div>
+        <input type="hidden" id="al-start">
+        <input type="hidden" id="al-end">
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
@@ -889,13 +890,29 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
         </select>
       </div>
       <div class="field">
-        <label>Programs <span style="color:var(--muted);font-weight:400">(blank = all selected)</span></label>
-        <input type="text" id="al-progs" placeholder="leave blank to use current selection" style="font-size:11px">
+        <label>Programs <span style="color:var(--muted);font-weight:400">— type AMEX to expand</span></label>
+        <input type="text" id="al-progs" placeholder="AMEX or blank = current selection" style="font-size:12px" oninput="alExpandKeywords(this,'prog')">
       </div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button class="drp-clear" onclick="toggleAlertForm()">Cancel</button>
       <button class="drp-done" onclick="saveAlert()">Save Alert</button>
+    </div>
+  </div>
+
+  <!-- Alert date picker overlay (separate instance) -->
+  <div class="drp-overlay" id="al-drp-overlay" onclick="alDrpOverlayClick(event)">
+    <div class="drp-popup">
+      <div class="drp-header">
+        <button class="drp-nav" onclick="alDrpShift(-1)">&#8249;</button>
+        <div class="drp-months" id="al-drp-months"></div>
+        <button class="drp-nav" onclick="alDrpShift(1)">&#8250;</button>
+      </div>
+      <div class="drp-footer">
+        <span id="al-drp-hint" class="drp-hint">Click a start date</span>
+        <button class="drp-clear" onclick="alDrpClear()">Clear</button>
+        <button class="drp-done" id="al-drp-done" onclick="alDrpDone()" disabled>Done</button>
+      </div>
     </div>
   </div>
 
@@ -2194,34 +2211,135 @@ function renderAlerts(alerts) {
   `).join('');
 }
 
+// ── Alert keyword expansion ───────────────────────────────────────
+const AL_KEYWORDS = {
+  dest: {
+    ASIA: ['NRT','HND','KIX','ICN','PVG','HKG','SIN','BKK','KUL','MNL'],
+    EUROPE: ['LHR','CDG','AMS','MAD','FCO','BCN','FRA','ZRH','LIS','VIE'],
+    USA: ['JFK','LAX','MIA','ORD','SFO','BOS','DFW','ATL','SEA','EWR'],
+  },
+  prog: {
+    AMEX: AMEX_SOURCES,
+    ALL:  [...AMEX_SOURCES, ...ALL_OTHER_SOURCES],
+  },
+};
+
+function alExpandKeywords(input, type) {
+  const val = input.value.trim().toUpperCase();
+  const map = AL_KEYWORDS[type];
+  if (map[val]) {
+    input.value = map[val].join(',');
+    input.style.color = 'var(--accent)';
+    setTimeout(() => { input.style.color = ''; }, 1200);
+  }
+}
+
+// ── Alert date picker (separate instance from main picker) ────────
+(function() {
+  let alViewYear, alViewMonth;
+  let alStart = null, alEnd = null;
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  function toYMD(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function fmt(d)   { return d ? MONTHS[d.getMonth()].slice(0,3)+' '+d.getDate()+', '+d.getFullYear() : ''; }
+
+  function alRender() {
+    const c = document.getElementById('al-drp-months');
+    c.innerHTML = '';
+    for (let i = 0; i < 2; i++) {
+      let m = alViewMonth + i, y = alViewYear;
+      if (m > 11) { m -= 12; y++; }
+      c.appendChild(buildMonth(y, m));
+    }
+  }
+
+  function buildMonth(year, month) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const wrap = document.createElement('div'); wrap.className = 'drp-month';
+    wrap.innerHTML = `<div class="drp-month-title">${MONTHS[month]} ${year}</div>`;
+    const grid = document.createElement('div'); grid.className = 'drp-grid';
+    DAYS.forEach(d => { const e = document.createElement('div'); e.className='drp-dow'; e.textContent=d; grid.appendChild(e); });
+    const firstDow = new Date(year, month, 1).getDay();
+    for (let i = 0; i < firstDow; i++) { const e=document.createElement('div'); e.className='drp-day drp-empty'; grid.appendChild(e); }
+    const dim = new Date(year, month+1, 0).getDate();
+    for (let day = 1; day <= dim; day++) {
+      const d = new Date(year, month, day);
+      const el = document.createElement('div'); el.className='drp-day'; el.textContent=day;
+      if (d < today) { el.classList.add('drp-past'); }
+      else {
+        const isS = alStart && d.getTime()===alStart.getTime();
+        const isE = alEnd   && d.getTime()===alEnd.getTime();
+        const inR = alStart && alEnd && d>alStart && d<alEnd;
+        if (isS) el.classList.add('drp-start');
+        if (isE) el.classList.add('drp-end');
+        if (inR||isS||isE) el.classList.add('drp-in-range');
+        el.addEventListener('mouseenter', () => { if (alStart && !alEnd && d>alStart) { alEnd=d; alRender(); alEnd=null; } });
+        el.addEventListener('click', () => {
+          if (!alStart || alEnd || d<alStart) { alStart=d; alEnd=null; document.getElementById('al-drp-hint').textContent='Now click an end date'; document.getElementById('al-drp-done').disabled=true; }
+          else if (d.getTime()===alStart.getTime()) { alStart=null; alEnd=null; document.getElementById('al-drp-hint').textContent='Click a start date'; document.getElementById('al-drp-done').disabled=true; }
+          else { alEnd=d; document.getElementById('al-drp-hint').textContent=fmt(alStart)+'  →  '+fmt(alEnd); document.getElementById('al-drp-done').disabled=false; }
+          alRender();
+        });
+      }
+      grid.appendChild(el);
+    }
+    wrap.appendChild(grid); return wrap;
+  }
+
+  window.alDrpOpen = function() {
+    const now = new Date(); alViewYear=now.getFullYear(); alViewMonth=now.getMonth();
+    alRender();
+    document.getElementById('al-drp-overlay').classList.add('open');
+    document.getElementById('al-drp-trigger').classList.add('active');
+    document.getElementById('al-drp-done').disabled = !(alStart && alEnd);
+    document.getElementById('al-drp-hint').textContent = alStart && alEnd ? fmt(alStart)+'  →  '+fmt(alEnd) : alStart ? 'Now click an end date' : 'Click a start date';
+  };
+  window.alDrpShift = function(dir) { alViewMonth+=dir; if(alViewMonth<0){alViewMonth=11;alViewYear--;} if(alViewMonth>11){alViewMonth=0;alViewYear++;} alRender(); };
+  window.alDrpOverlayClick = function(e) { if(e.target===document.getElementById('al-drp-overlay')) alDrpClose(); };
+  window.alDrpClear = function() { alStart=null; alEnd=null; document.getElementById('al-start').value=''; document.getElementById('al-end').value=''; document.getElementById('al-drp-label').textContent='Select dates'; document.getElementById('al-drp-hint').textContent='Click a start date'; document.getElementById('al-drp-done').disabled=true; alRender(); };
+  window.alDrpDone = function() {
+    if (!alStart || !alEnd) return;
+    document.getElementById('al-start').value = toYMD(alStart);
+    document.getElementById('al-end').value   = toYMD(alEnd);
+    document.getElementById('al-drp-label').textContent = fmt(alStart)+'  →  '+fmt(alEnd);
+    alDrpClose();
+  };
+  function alDrpClose() { document.getElementById('al-drp-overlay').classList.remove('open'); document.getElementById('al-drp-trigger').classList.remove('active'); }
+})();
+
 function toggleAlertForm() {
   const form = document.getElementById('alert-form');
   form.style.display = form.style.display === 'none' ? 'block' : 'none';
 
-  // Pre-fill from current search state
   if (form.style.display === 'block') {
     const origin = document.getElementById('origin-search').value.trim().toUpperCase().slice(0,3) || 'EZE';
     document.getElementById('al-origin').value = origin;
-    const start = document.getElementById('start-date').value;
-    const end   = document.getElementById('end-date').value;
-    if (start) document.getElementById('al-start').value = start;
-    if (end)   document.getElementById('al-end').value   = end;
     // Pre-fill destinations from checked
     const dests = checkedDests();
     if (dests.length) document.getElementById('al-dests').value = dests.join(',');
+    // Pre-fill programs hint
+    document.getElementById('al-progs').placeholder = 'AMEX, or leave blank = current selection';
   }
 }
 
 async function saveAlert() {
   const origin = document.getElementById('al-origin').value.trim().toUpperCase().slice(0,3);
-  const dests  = document.getElementById('al-dests').value.split(',').map(d => d.trim().toUpperCase()).filter(Boolean);
+  const destsRaw = document.getElementById('al-dests').value.trim().toUpperCase();
+  // expand keywords one more time at save
+  const destsExpanded = AL_KEYWORDS.dest[destsRaw] || destsRaw.split(',').map(d=>d.trim()).filter(Boolean);
+  const dests = destsExpanded;
   const start  = document.getElementById('al-start').value;
   const end    = document.getElementById('al-end').value;
   const miles  = parseInt(document.getElementById('al-miles').value, 10);
   const cabin  = document.getElementById('al-cabin').value;
-  const progsRaw = document.getElementById('al-progs').value.trim();
-  const programs = progsRaw ? progsRaw.split(',').map(p => p.trim().toLowerCase()).filter(Boolean)
-                            : [...checkedPrograms()];
+  const progsRaw = document.getElementById('al-progs').value.trim().toUpperCase();
+  const programs = AL_KEYWORDS.prog[progsRaw]
+    ? AL_KEYWORDS.prog[progsRaw]
+    : progsRaw
+      ? progsRaw.split(',').map(p=>p.trim().toLowerCase()).filter(Boolean)
+      : [...checkedPrograms()];
 
   if (!origin || !dests.length) { alert('Enter origin and at least one destination.'); return; }
   if (!start || !end)           { alert('Enter start and end date.'); return; }
