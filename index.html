@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Award Flights · EZE → Asia</title>
+<style>
+/* ── Reset ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #080d1c;
+  --panel:     #0d1528;
+  --panel2:    #111d36;
+  --border:    #1b2e54;
+  --border2:   #243a6a;
+  --text:      #d8e4f8;
+  --muted:     #4a6490;
+  --muted2:    #2a4070;
+  --accent:    #4a8ef0;
+  --accent2:   #2a6ad0;
+  --green:     #22c55e;
+  --green-dim: rgba(34,197,94,.12);
+  --red:       #ef4444;
+  --amex:      #4a90d9;  /* Amex blue */
+  --amex-bg:   rgba(74,144,217,.15);
+
+  /* per-program colours */
+  --c-qatar:     #d4a520; --bg-qatar:     rgba(212,165,32,.10);
+  --c-ba:        #3b82f6; --bg-ba:        rgba(59,130,246,.10);
+  --c-flyblue:   #1e90ff; --bg-flyblue:   rgba(30,144,255,.10);
+  --c-aeroplan:  #e05050; --bg-aeroplan:  rgba(224,80,80,.10);
+  --c-ana:       #7b68ee; --bg-ana:       rgba(123,104,238,.10);
+  --c-avianca:   #ff6b35; --bg-avianca:   rgba(255,107,53,.10);
+  --c-singapore: #f0b429; --bg-singapore: rgba(240,180,41,.10);
+  --c-virgin:    #e63070; --bg-virgin:    rgba(230,48,112,.10);
+  --c-delta:     #9400d3; --bg-delta:     rgba(148,0,211,.10);
+  --c-iberia:    #f97316; --bg-iberia:    rgba(249,115,22,.10);
+  --c-aerlingus: #006a4e; --bg-aerlingus: rgba(0,106,78,.10);
+  --c-cathay:    #1a6b3c; --bg-cathay:    rgba(0,136,68,.10);
+  --c-jetblue:   #0033a0; --bg-jetblue:   rgba(0,51,160,.10);
+  --c-qantas:    #e4002b; --bg-qantas:    rgba(228,0,43,.10);
+  --c-emirates:  #d4003a; --bg-emirates:  rgba(212,0,58,.10);
+  --c-aeromexico:#006cb7; --bg-aeromexico:rgba(0,108,183,.10);
+}
+
+html { font-size: 14px; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Subtle stars */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 12%  8%,  rgba(255,255,255,.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 34% 22%,  rgba(255,255,255,.18) 0%, transparent 100%),
+    radial-gradient(1px 1px at 56%  5%,  rgba(255,255,255,.22) 0%, transparent 100%),
+    radial-gradient(1px 1px at 78% 18%,  rgba(255,255,255,.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90%  3%,  rgba(255,255,255,.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 23% 45%,  rgba(255,255,255,.12) 0%, transparent 100%),
+    radial-gradient(1px 1px at 67% 38%,  rgba(255,255,255,.20) 0%, transparent 100%),
+    radial-gradient(1px 1px at 45% 60%,  rgba(255,255,255,.14) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 55%,  rgba(255,255,255,.10) 0%, transparent 100%),
+    radial-gradient(1px 1px at  5% 70%,  rgba(255,255,255,.16) 0%, transparent 100%);
+}
+
+/* ── Header ──────────────────────────────────────────────────── */
+header {
+  position: relative; z-index: 1;
+  background: linear-gradient(135deg, #0b1535 0%, #14285a 50%, #0b1535 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 28px;
+  display: flex; align-items: center; gap: 14px;
+}
+.header-icon { font-size: 30px; line-height: 1; filter: drop-shadow(0 0 8px rgba(74,142,240,.6)); }
+.header-text h1 { font-size: 20px; font-weight: 700; color: #a8c8f8; letter-spacing: .4px; }
+.header-text p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.header-route   { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.route-chip     { background: var(--panel2); border: 1px solid var(--border2); border-radius: 6px; padding: 4px 10px; font-weight: 700; font-size: 15px; color: var(--accent); }
+
+/* ── Main ────────────────────────────────────────────────────── */
+main {
+  position: relative; z-index: 1;
+  max-width: 1380px; margin: 0 auto; padding: 22px 20px 50px;
+}
+
+/* ── Card ────────────────────────────────────────────────────── */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+}
+
+/* ── Search top grid ─────────────────────────────────────────── */
+.search-top {
+  display: grid;
+  grid-template-columns: 190px 1fr auto;
+  gap: 18px 28px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+.dates-stack { display: flex; flex-direction: column; gap: 14px; min-width: 150px; }
+@media (max-width: 900px) { .search-top { grid-template-columns: 1fr 1fr; } .dates-stack { flex-direction: row; } }
+
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field label {
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.1px;
+  color: var(--muted);
+}
+
+/* Origin autocomplete */
+.origin-search-wrap { position: relative; }
+.origin-input {
+  font-size: 20px !important; font-weight: 800 !important;
+  color: var(--accent) !important; letter-spacing: 2px;
+  text-transform: uppercase; padding: 8px 12px !important;
+}
+.origin-name-display { font-size: 11px; color: var(--muted); margin-top: 4px; padding-left: 2px; min-height: 15px; }
+
+/* Destination checkboxes */
+.dest-group { display: flex; flex-wrap: wrap; gap: 7px; padding-top: 2px; }
+
+.check-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--border); background: rgba(255,255,255,.03);
+  font-size: 12.5px; user-select: none;
+  transition: border-color .15s, background .15s;
+}
+.check-pill:hover { border-color: var(--border2); background: rgba(255,255,255,.06); }
+/* Hide native checkbox; use custom box */
+.check-pill input[type=checkbox] { display: none; }
+.check-pill .cb-box {
+  width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
+  border: 1.5px solid var(--border2); background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: transparent;
+  transition: background .12s, border-color .12s;
+}
+.check-pill:has(input:checked) .cb-box {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.check-pill:has(input:checked) { border-color: var(--border2); background: rgba(74,142,240,.08); }
+.check-pill .code { font-weight: 700; }
+.check-pill .city { font-size: 11px; color: var(--muted); }
+
+/* Region label above dest groups */
+.dest-region-label {
+  font-size: 9.5px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 1.4px;
+  color: var(--muted2); margin-bottom: 6px;
+}
+
+/* Airport search */
+.airport-search-wrap {
+  position: relative; margin-top: 8px; max-width: 320px;
+}
+.airport-search-wrap input {
+  padding-left: 32px;
+  background: #060b18 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%234a6490' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 10px center;
+}
+.airport-dropdown {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+  background: #0d1830; border: 1px solid var(--border2);
+  border-radius: 10px; z-index: 100;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  overflow: hidden; display: none;
+}
+.airport-dropdown.open { display: block; }
+.airport-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; cursor: pointer;
+  transition: background .1s; border-bottom: 1px solid rgba(27,46,84,.4);
+}
+.airport-option:last-child { border-bottom: none; }
+.airport-option:hover, .airport-option.focused { background: rgba(74,142,240,.12); }
+.airport-option .opt-code {
+  font-weight: 800; font-size: 14px; color: var(--accent);
+  width: 36px; flex-shrink: 0;
+}
+.airport-option .opt-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.airport-option .opt-name { font-size: 12.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.airport-option .opt-city { font-size: 11px; color: var(--muted); }
+.airport-option .opt-country { font-size: 11px; color: var(--muted2); margin-left: auto; flex-shrink: 0; }
+
+/* Custom dest pills (removable) */
+.custom-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 8px; cursor: default;
+  border: 1px solid var(--border2); background: rgba(74,142,240,.08);
+  font-size: 12.5px; user-select: none;
+}
+.custom-pill input[type=checkbox] { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; }
+.custom-pill .code { font-weight: 700; color: var(--accent); }
+.custom-pill .city { font-size: 11px; color: var(--muted); }
+.custom-pill .remove-btn {
+  margin-left: 2px; width: 14px; height: 14px; border-radius: 50%;
+  background: rgba(239,68,68,.2); border: none; color: #f87171;
+  font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .12s; padding: 0; line-height: 1;
+}
+.custom-pill .remove-btn:hover { background: rgba(239,68,68,.45); }
+
+/* Date inputs */
+input[type=date], input[type=text], input[type=password], input[type=search] {
+  background: #060b18; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
+  padding: 9px 13px; font-size: 13.5px; width: 100%;
+  outline: none; transition: border-color .15s, box-shadow .15s;
+  font-family: inherit; -webkit-appearance: none; appearance: none;
+}
+input[type=date]:focus, input[type=text]:focus, input[type=password]:focus, input[type=search]:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(74,142,240,.12);
+}
+input[type=search]::-webkit-search-decoration,
+input[type=search]::-webkit-search-cancel-button,
+input[type=search]::-webkit-search-results-button,
+input[type=search]::-webkit-search-results-decoration { display: none; }
+input[type=date]::-webkit-calendar-picker-indicator { filter: invert(.5); cursor: pointer; }
+
+/* ── Date Range Picker ───────────────────────────────────────── */
+.drp-trigger {
+  display: flex; align-items: center; gap: 8px;
+  background: #060b18; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
+  padding: 9px 13px; font-size: 13.5px; width: 100%;
+  cursor: pointer; transition: border-color .15s, box-shadow .15s;
+  white-space: nowrap; user-select: none;
+}
+.drp-trigger:hover { border-color: var(--border2); }
+.drp-trigger.active { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(74,142,240,.12); }
+.drp-icon { font-size: 14px; }
+
+.drp-overlay {
+  display: none; position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,.55);
+}
+.drp-overlay.open { display: flex; align-items: center; justify-content: center; }
+
+.drp-popup {
+  background: #0d1528; border: 1px solid var(--border2);
+  border-radius: 16px; padding: 20px 24px 16px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7);
+  min-width: 580px;
+}
+.drp-header { display: flex; align-items: flex-start; gap: 12px; }
+.drp-nav {
+  background: none; border: 1px solid var(--border2);
+  color: var(--text); border-radius: 8px;
+  width: 32px; height: 32px; font-size: 20px; line-height: 1;
+  cursor: pointer; flex-shrink: 0; margin-top: 4px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .12s;
+}
+.drp-nav:hover { background: var(--panel2); }
+.drp-months { display: flex; gap: 28px; flex: 1; }
+.drp-month { flex: 1; }
+.drp-month-title {
+  text-align: center; font-weight: 700; font-size: 14px;
+  color: var(--accent); margin-bottom: 10px; letter-spacing: .3px;
+}
+.drp-grid {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  gap: 2px;
+}
+.drp-dow {
+  text-align: center; font-size: 10px; font-weight: 700;
+  color: var(--muted); padding: 4px 0; text-transform: uppercase;
+}
+.drp-day {
+  text-align: center; font-size: 12.5px; padding: 6px 2px;
+  border-radius: 6px; cursor: pointer; color: var(--text);
+  transition: background .1s, color .1s;
+  user-select: none;
+}
+.drp-day:hover:not(.drp-empty):not(.drp-past) { background: var(--panel2); }
+.drp-empty { cursor: default; }
+.drp-past  { color: var(--muted2); cursor: not-allowed; }
+.drp-day.drp-start, .drp-day.drp-end {
+  background: var(--accent); color: #fff; font-weight: 700; border-radius: 8px;
+}
+.drp-day.drp-in-range { background: rgba(74,142,240,.18); border-radius: 0; }
+.drp-day.drp-start.drp-in-range { border-radius: 8px 0 0 8px; }
+.drp-day.drp-end.drp-in-range   { border-radius: 0 8px 8px 0; }
+.drp-day.drp-start.drp-end      { border-radius: 8px; }
+
+.drp-footer {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 14px; border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.drp-hint { flex: 1; font-size: 12px; color: var(--muted); }
+.drp-clear {
+  background: none; border: 1px solid var(--border2);
+  color: var(--muted); border-radius: 8px;
+  padding: 6px 14px; font-size: 12px; cursor: pointer;
+  transition: background .12s;
+}
+.drp-clear:hover { background: var(--panel2); }
+.drp-done {
+  background: var(--accent); border: none;
+  color: #fff; border-radius: 8px;
+  padding: 6px 18px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background .12s;
+}
+.drp-done:disabled { opacity: .35; cursor: not-allowed; }
+.drp-done:not(:disabled):hover { background: var(--accent2); }
+
+/* ── Programs section ────────────────────────────────────────── */
+.prog-section { margin-bottom: 18px; }
+.prog-section-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.prog-section-label {
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.1px;
+  color: var(--muted);
+}
+
+/* Amex toggle button */
+.btn-amex-toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--amex-bg); border: 1px solid rgba(74,144,217,.4);
+  color: var(--amex); border-radius: 8px;
+  padding: 5px 14px; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: background .15s, border-color .15s;
+  letter-spacing: .3px;
+}
+.btn-amex-toggle:hover { background: rgba(74,144,217,.25); border-color: rgba(74,144,217,.65); }
+.btn-amex-toggle.active { background: rgba(74,144,217,.30); border-color: rgba(74,144,217,.8); color: #78b4f0; }
+.amex-logo { font-size: 13px; }
+
+/* Program grid */
+.prog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 7px;
+}
+
+.prog-pill {
+  display: flex; align-items: center; gap: 0;
+  border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--border); background: rgba(255,255,255,.03);
+  overflow: hidden; user-select: none;
+  transition: border-color .15s, background .15s;
+}
+.prog-pill:hover { border-color: var(--border2); background: rgba(255,255,255,.05); }
+.prog-pill:has(input:checked) { border-color: var(--border2); background: rgba(255,255,255,.06); }
+
+.prog-pill input[type=checkbox] { display: none; }
+
+.prog-pill-dot {
+  width: 4px; align-self: stretch; flex-shrink: 0;
+}
+.prog-pill-body {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; flex: 1; min-width: 0;
+}
+.prog-pill-check {
+  width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
+  border: 1.5px solid var(--border2); background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .12s, border-color .12s;
+  font-size: 9px; color: transparent;
+}
+.prog-pill:has(input:checked) .prog-pill-check {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.prog-pill-name { font-weight: 700; font-size: 12.5px; color: var(--text); }
+.prog-pill-sub  { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+
+.prog-pill-ratio {
+  margin-left: auto; padding: 2px 8px;
+  border-radius: 4px; font-size: 10.5px; font-weight: 700;
+  background: rgba(34,197,94,.10); color: var(--green);
+  white-space: nowrap; flex-shrink: 0;
+}
+.prog-pill-ratio.warn {
+  background: rgba(249,115,22,.10); color: var(--iberia);
+}
+.prog-pill-ratio.delay {
+  background: rgba(123,104,238,.10); color: var(--c-ana);
+}
+
+/* ── API key / search row ────────────────────────────────────── */
+.apikey-row {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding-top: 16px; border-top: 1px solid var(--border);
+}
+.apikey-row label {
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.1px;
+  color: var(--muted); white-space: nowrap;
+}
+.apikey-row input { max-width: 260px; }
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn-search {
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #fff; border: none; border-radius: 9px;
+  padding: 10px 28px; font-size: 14px; font-weight: 700;
+  cursor: pointer; letter-spacing: .3px; white-space: nowrap;
+  transition: opacity .15s, transform .1s, box-shadow .15s;
+  box-shadow: 0 2px 12px rgba(74,142,240,.25);
+}
+.btn-search:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 4px 18px rgba(74,142,240,.35); }
+.btn-search:active { transform: translateY(0); }
+.btn-search:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-csv {
+  background: var(--green-dim); border: 1px solid rgba(34,197,94,.3);
+  color: var(--green); border-radius: 7px;
+  padding: 7px 16px; font-size: 12.5px; font-weight: 700;
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.btn-csv:hover { background: rgba(34,197,94,.18); border-color: rgba(34,197,94,.5); }
+
+/* ── Loading ─────────────────────────────────────────────────── */
+.loading { display: none; align-items: center; gap: 9px; color: #6090cc; font-size: 13px; }
+.spinner {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 2px solid var(--border2); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.prog-bar-wrap { display: none; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 10px; }
+.prog-bar { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width .3s ease; }
+
+/* ── Error ───────────────────────────────────────────────────── */
+.error-box {
+  display: none;
+  background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.3);
+  border-radius: 9px; padding: 13px 18px;
+  color: #f87171; font-size: 13.5px; margin-bottom: 16px;
+}
+.warning-box {
+  display: none;
+  background: rgba(249,115,22,.08); border: 1px solid rgba(249,115,22,.3);
+  border-radius: 9px; padding: 10px 16px;
+  color: #fdba74; font-size: 13px; margin-bottom: 14px;
+}
+
+/* ── Summary bar ─────────────────────────────────────────────── */
+.summary-bar {
+  display: none; flex-wrap: wrap; gap: 0;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; margin-bottom: 16px;
+}
+.sum-item {
+  flex: 1 1 150px; padding: 16px 20px;
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.sum-item:last-child { border-right: none; }
+.sum-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.1px; color: var(--muted); }
+.sum-value { font-size: 21px; font-weight: 800; color: #90b8f8; line-height: 1; }
+.sum-value.green { color: var(--green); }
+.sum-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── Results ─────────────────────────────────────────────────── */
+.results-section { display: none; }
+.results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.results-title  { font-size: 14px; font-weight: 700; color: #90b8f8; }
+
+.table-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: auto; max-height: 70vh; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+thead th {
+  background: #0a1220; position: sticky; top: 0; z-index: 2;
+  padding: 11px 14px; text-align: left;
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--muted); font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; user-select: none; white-space: nowrap;
+  transition: color .12s;
+}
+thead th:hover { color: #a0c0f0; }
+thead th.sort-asc::after  { content: ' ↑'; color: var(--accent); }
+thead th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+
+tbody tr { border-bottom: 1px solid rgba(27,46,84,.6); transition: filter .12s; }
+tbody tr:hover { filter: brightness(1.25); }
+tbody tr:last-child { border-bottom: none; }
+tbody td { padding: 8px 14px; white-space: nowrap; }
+
+/* Row tints */
+tr.p-qatar     { background: var(--bg-qatar); }
+tr.p-ba        { background: var(--bg-ba); }
+tr.p-flyingblue { background: var(--bg-flyblue); }
+tr.p-aeroplan  { background: var(--bg-aeroplan); }
+tr.p-ana       { background: var(--bg-ana); }
+tr.p-avianca   { background: var(--bg-avianca); }
+tr.p-singapore { background: var(--bg-singapore); }
+tr.p-virgin    { background: var(--bg-virgin); }
+tr.p-delta     { background: var(--bg-delta); }
+tr.p-iberia    { background: var(--bg-iberia); }
+tr.p-american  { background: rgba(192,57,43,.08); }
+tr.p-alaska    { background: rgba(0,100,164,.08); }
+tr.p-united    { background: rgba(0,34,68,.10); }
+tr.p-etihad    { background: rgba(189,139,19,.08); }
+tr.p-turkish   { background: rgba(227,10,23,.06); }
+tr.p-emirates  { background: rgba(212,0,58,.06); }
+tr.p-smiles    { background: rgba(255,102,0,.08); }
+tr.p-aeromexico{ background: rgba(0,108,183,.08); }
+
+/* Cheap highlight */
+tr.cheap td.td-miles  { color: var(--green); font-weight: 700; }
+tr.cheap td.td-amex   { color: var(--green); font-weight: 700; }
+tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
+
+/* ── Badges ──────────────────────────────────────────────────── */
+.prog-badge {
+  display: inline-block; padding: 3px 8px; border-radius: 5px;
+  font-size: 11px; font-weight: 700; border: 1px solid transparent; white-space: nowrap;
+}
+
+.route-badge { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; }
+.direct-yes  { background: var(--green-dim); color: var(--green); }
+.direct-no   { background: rgba(100,100,160,.10); color: var(--muted); }
+
+.amex-note { font-size: 10.5px; color: var(--muted); }
+.amex-note.warn { color: #fdba74; }
+
+.empty-row td { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 14px; }
+
+/* API key masking — works in Chrome/Edge; Firefox shows text (no -webkit-text-security) */
+#api-key.masked {
+  -webkit-text-security: disc;
+  color: var(--muted);
+  letter-spacing: 3px !important;
+}
+
+/* Book button */
+.btn-book {
+  display: inline-block; padding: 4px 12px; border-radius: 6px;
+  background: linear-gradient(135deg,var(--accent2),var(--accent));
+  color: #fff; font-size: 11.5px; font-weight: 700;
+  text-decoration: none; white-space: nowrap;
+  transition: opacity .15s, transform .1s;
+  box-shadow: 0 1px 6px rgba(74,142,240,.25);
+}
+.btn-book:hover { opacity: .85; transform: translateY(-1px); }
+</style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────── -->
+<header>
+  <div class="header-icon">✈</div>
+  <div class="header-text">
+    <h1>Award Flight Finder</h1>
+    <p>Business Class · EZE → Asia Pacific · Powered by Seats.aero</p>
+  </div>
+  <div class="header-route">
+    <span class="route-chip">EZE</span>
+    <span style="color:var(--muted2);font-size:18px">→</span>
+    <span style="color:var(--muted)">Asia Pacific</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ── Search card ──────────────────────────────────────────────── -->
+<div class="card">
+
+  <!-- Top row: origin + destinations + dates -->
+  <div class="search-top">
+
+    <div class="field">
+      <label>Origin</label>
+      <div class="origin-search-wrap">
+        <input type="search" id="origin-search" value="EZE" placeholder="City or code…" autocomplete="off" spellcheck="false" class="origin-input" data-lpignore="true" data-form-type="other">
+        <div class="origin-name-display" id="origin-name-display">Buenos Aires Ezeiza</div>
+        <div class="airport-dropdown" id="origin-dropdown"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Destinations</label>
+
+      <!-- ASIA group -->
+      <div class="dest-region-label">ASIA</div>
+      <div class="dest-group" id="dest-checks">
+        <label class="check-pill"><input type="checkbox" value="PVG"><span class="cb-box">✓</span><span class="code">PVG</span><span class="city">Shanghai</span></label>
+        <label class="check-pill"><input type="checkbox" value="HKG"><span class="cb-box">✓</span><span class="code">HKG</span><span class="city">Hong Kong</span></label>
+        <label class="check-pill"><input type="checkbox" value="NRT"><span class="cb-box">✓</span><span class="code">NRT</span><span class="city">Tokyo Narita</span></label>
+        <label class="check-pill"><input type="checkbox" value="HND"><span class="cb-box">✓</span><span class="code">HND</span><span class="city">Tokyo Haneda</span></label>
+        <label class="check-pill"><input type="checkbox" value="ICN"><span class="cb-box">✓</span><span class="code">ICN</span><span class="city">Seoul</span></label>
+        <label class="check-pill"><input type="checkbox" value="KIX"><span class="cb-box">✓</span><span class="code">KIX</span><span class="city">Osaka</span></label>
+      </div>
+
+      <!-- Custom destinations -->
+      <div class="dest-region-label" style="margin-top:10px">OTHER</div>
+      <div class="dest-group" id="custom-dest-pills"></div>
+      <div class="airport-search-wrap">
+        <input type="search" id="airport-search" placeholder="Type airport code or city name…" autocomplete="off" spellcheck="false" data-lpignore="true" data-form-type="other">
+        <div class="airport-dropdown" id="airport-dropdown"></div>
+      </div>
+    </div>
+
+    <div class="dates-stack">
+      <div class="field">
+        <label>Date Range</label>
+        <div class="drp-trigger" id="drp-trigger" onclick="drpOpen()">
+          <span class="drp-icon">📅</span>
+          <span id="drp-label">Select dates</span>
+        </div>
+      </div>
+      <!-- hidden inputs consumed by startSearch -->
+      <input type="hidden" id="start-date">
+      <input type="hidden" id="end-date">
+    </div>
+
+    <!-- Date range picker overlay -->
+    <div class="drp-overlay" id="drp-overlay" onclick="drpOverlayClick(event)">
+      <div class="drp-popup" id="drp-popup">
+        <div class="drp-header">
+          <button class="drp-nav" id="drp-prev" onclick="drpShift(-1)">&#8249;</button>
+          <div class="drp-months" id="drp-months"></div>
+          <button class="drp-nav" id="drp-next" onclick="drpShift(1)">&#8250;</button>
+        </div>
+        <div class="drp-footer">
+          <span id="drp-hint" class="drp-hint">Click a start date</span>
+          <button class="drp-clear" onclick="drpClear()">Clear</button>
+          <button class="drp-done" id="drp-done" onclick="drpDone()" disabled>Done</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Programs section -->
+  <div class="prog-section">
+    <div class="prog-section-header">
+      <span class="prog-section-label">Mileage Programs</span>
+      <button class="btn-amex-toggle active" id="amex-toggle" onclick="toggleAmex()">
+        <span class="amex-logo">💳</span> Amex Transfer Partners
+      </button>
+      <button class="btn-amex-toggle" id="all-prog-toggle" onclick="toggleAllProgs()" style="background:rgba(255,255,255,.05);border-color:var(--border2);color:var(--muted)">
+        ☰ All Programs
+      </button>
+    </div>
+
+    <!-- Amex partners -->
+    <div class="dest-region-label" style="margin-bottom:8px">AMEX TRANSFER PARTNERS</div>
+    <div class="prog-grid" id="prog-checks">
+      <label class="prog-pill" data-prog="qatar"><input type="checkbox" value="qatar" checked>
+        <div class="prog-pill-dot" style="background:var(--c-qatar)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Qatar Airways</div><div class="prog-pill-sub">Avios / Qsuites</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="ba"><input type="checkbox" value="ba" checked>
+        <div class="prog-pill-dot" style="background:var(--c-ba)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">British Airways</div><div class="prog-pill-sub">Avios</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="flyingblue"><input type="checkbox" value="flyingblue" checked>
+        <div class="prog-pill-dot" style="background:var(--c-flyblue)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Flying Blue</div><div class="prog-pill-sub">AF / KLM</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="aeroplan"><input type="checkbox" value="aeroplan" checked>
+        <div class="prog-pill-dot" style="background:var(--c-aeroplan)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Air Canada Aeroplan</div><div class="prog-pill-sub">Star Alliance</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="ana"><input type="checkbox" value="ana" checked>
+        <div class="prog-pill-dot" style="background:var(--c-ana)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">ANA Mileage Club</div><div class="prog-pill-sub">Star Alliance</div></div>
+          <div class="prog-pill-ratio delay">1:1 (2-3 días)</div></div></label>
+
+      <label class="prog-pill" data-prog="avianca"><input type="checkbox" value="avianca" checked>
+        <div class="prog-pill-dot" style="background:var(--c-avianca)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Avianca LifeMiles</div><div class="prog-pill-sub">Star Alliance</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="singapore"><input type="checkbox" value="singapore" checked>
+        <div class="prog-pill-dot" style="background:var(--c-singapore)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Singapore KrisFlyer</div><div class="prog-pill-sub">Star Alliance + SQ</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="virginatlantic"><input type="checkbox" value="virginatlantic" checked>
+        <div class="prog-pill-dot" style="background:var(--c-virgin)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Virgin Atlantic</div><div class="prog-pill-sub">Flying Club</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="delta"><input type="checkbox" value="delta" checked>
+        <div class="prog-pill-dot" style="background:var(--c-delta)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Delta SkyMiles</div><div class="prog-pill-sub">SkyTeam</div></div>
+          <div class="prog-pill-ratio warn">1:1 + fee</div></div></label>
+
+      <label class="prog-pill" data-prog="iberia"><input type="checkbox" value="iberia" checked>
+        <div class="prog-pill-dot" style="background:var(--c-iberia)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Iberia Plus</div><div class="prog-pill-sub">Avios / Oneworld</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="aeromexico"><input type="checkbox" value="aeromexico" checked>
+        <div class="prog-pill-dot" style="background:var(--c-aeromexico)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Aeroméxico Rewards</div><div class="prog-pill-sub">SkyTeam</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="emirates"><input type="checkbox" value="emirates" checked>
+        <div class="prog-pill-dot" style="background:var(--c-emirates)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Emirates Skywards</div><div class="prog-pill-sub">Emirates</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="aerlingus"><input type="checkbox" value="aerlingus" checked>
+        <div class="prog-pill-dot" style="background:var(--c-aerlingus)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Aer Lingus AerClub</div><div class="prog-pill-sub">Oneworld</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="cathay"><input type="checkbox" value="cathay" checked>
+        <div class="prog-pill-dot" style="background:var(--c-cathay)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Cathay Pacific</div><div class="prog-pill-sub">Asia Miles</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="jetblue"><input type="checkbox" value="jetblue" checked>
+        <div class="prog-pill-dot" style="background:var(--c-jetblue)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">JetBlue TrueBlue</div><div class="prog-pill-sub">JetBlue</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+
+      <label class="prog-pill" data-prog="qantas"><input type="checkbox" value="qantas" checked>
+        <div class="prog-pill-dot" style="background:var(--c-qantas)"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Qantas Frequent Flyer</div><div class="prog-pill-sub">Oneworld</div></div>
+          <div class="prog-pill-ratio">1:1 ✓</div></div></label>
+    </div>
+
+    <!-- Other programs -->
+    <div class="dest-region-label" style="margin-top:14px;margin-bottom:8px">OTHER PROGRAMS</div>
+    <div class="prog-grid" id="prog-checks-other">
+      <label class="prog-pill" data-prog="american"><input type="checkbox" value="american">
+        <div class="prog-pill-dot" style="background:#c0392b"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">American AAdvantage</div><div class="prog-pill-sub">Oneworld</div></div>
+          <div class="prog-pill-ratio" style="background:transparent;color:var(--muted)">no Amex</div></div></label>
+
+      <label class="prog-pill" data-prog="alaska"><input type="checkbox" value="alaska">
+        <div class="prog-pill-dot" style="background:#0064a4"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Alaska Mileage Plan</div><div class="prog-pill-sub">Oneworld + partners</div></div>
+          <div class="prog-pill-ratio" style="background:transparent;color:var(--muted)">no Amex</div></div></label>
+
+      <label class="prog-pill" data-prog="united"><input type="checkbox" value="united">
+        <div class="prog-pill-dot" style="background:#002244"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">United MileagePlus</div><div class="prog-pill-sub">Star Alliance</div></div>
+          <div class="prog-pill-ratio" style="background:transparent;color:var(--muted)">no Amex</div></div></label>
+
+      <label class="prog-pill" data-prog="etihad"><input type="checkbox" value="etihad">
+        <div class="prog-pill-dot" style="background:#bd8b13"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Etihad Guest</div><div class="prog-pill-sub">Etihad + partners</div></div>
+          <div class="prog-pill-ratio" style="background:transparent;color:var(--muted)">no Amex</div></div></label>
+
+      <label class="prog-pill" data-prog="turkish"><input type="checkbox" value="turkish">
+        <div class="prog-pill-dot" style="background:#e30a17"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Turkish Miles&amp;Smiles</div><div class="prog-pill-sub">Star Alliance</div></div>
+          <div class="prog-pill-ratio" style="background:transparent;color:var(--muted)">no Amex</div></div></label>
+
+      <label class="prog-pill" data-prog="smiles"><input type="checkbox" value="smiles">
+        <div class="prog-pill-dot" style="background:#ff6600"></div>
+        <div class="prog-pill-body"><div class="prog-pill-check">✓</div>
+          <div><div class="prog-pill-name">Gol Smiles</div><div class="prog-pill-sub">SkyTeam + partners</div></div>
+          <div class="prog-pill-ratio" style="background:transparent;color:var(--muted)">no Amex</div></div></label>
+    </div>
+  </div>
+
+  <!-- API key + Search -->
+  <div class="apikey-row">
+    <label>API Key</label>
+    <div style="position:relative;max-width:280px;display:flex;align-items:center;gap:0">
+      <input type="text" id="api-key" placeholder="pro_…" autocomplete="off" data-lpignore="true" data-form-type="other" spellcheck="false" style="font-family:monospace;letter-spacing:2px;padding-right:36px">
+      <button type="button" id="apikey-toggle" onclick="toggleApiKeyVis()" title="Show/hide key"
+        style="position:absolute;right:0;top:0;bottom:0;width:34px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">👁</button>
+    </div>
+    <button class="btn-search" id="search-btn" onclick="startSearch()">Search Flights</button>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span id="loading-text">Searching…</span>
+    </div>
+  </div>
+
+  <div class="prog-bar-wrap" id="prog-bar-wrap">
+    <div class="prog-bar" id="prog-bar"></div>
+  </div>
+
+</div><!-- /card -->
+
+<!-- ── Alerts ─────────────────────────────────────────────────── -->
+<div class="error-box"   id="error-box"></div>
+<div class="warning-box" id="warning-box"></div>
+
+<!-- ── Summary bar ────────────────────────────────────────────── -->
+<div class="summary-bar" id="summary-bar">
+  <div class="sum-item">
+    <div class="sum-label">Results Found</div>
+    <div class="sum-value" id="sum-total">—</div>
+    <div class="sum-sub"   id="sum-sub-total"></div>
+  </div>
+  <div class="sum-item">
+    <div class="sum-label">Cheapest Deal</div>
+    <div class="sum-value green" id="sum-cheapest">—</div>
+    <div class="sum-sub"         id="sum-cheapest-sub"></div>
+  </div>
+  <div class="sum-item">
+    <div class="sum-label">Under 100k Miles</div>
+    <div class="sum-value green" id="sum-under100k">—</div>
+    <div class="sum-sub">highlighted green</div>
+  </div>
+  <div class="sum-item">
+    <div class="sum-label">Top Program</div>
+    <div class="sum-value" id="sum-top-prog" style="font-size:16px;padding-top:3px">—</div>
+    <div class="sum-sub"   id="sum-top-prog-sub"></div>
+  </div>
+  <div class="sum-item">
+    <div class="sum-label">Direct Flights</div>
+    <div class="sum-value" id="sum-direct">—</div>
+    <div class="sum-sub">nonstop available</div>
+  </div>
+</div>
+
+<!-- ── Results ────────────────────────────────────────────────── -->
+<div id="debug-panel" style="display:none;margin-bottom:12px;padding:12px 16px;background:#1a0a0a;border:1px solid #5a2020;border-radius:10px;font-size:12px;color:#f0a0a0;line-height:1.8">
+  <strong style="color:#ff8080">Debug Info</strong><br>
+  <span id="debug-text"></span>
+</div>
+<div class="results-section" id="results-section">
+  <div class="results-header">
+    <div class="results-title" id="results-title">Results</div>
+    <button class="btn-csv" onclick="exportCSV()">⬇ Export CSV</button>
+  </div>
+  <div class="table-wrap">
+    <table id="results-table">
+      <thead>
+        <tr>
+          <th onclick="sortBy('date')">Date</th>
+          <th onclick="sortBy('dest')">Destination</th>
+          <th onclick="sortBy('prog')">Program</th>
+          <th onclick="sortBy('yecon')">Economy (Y)</th>
+          <th onclick="sortBy('wpremeco')">Prem. Econ (W)</th>
+          <th onclick="sortBy('miles')">Business (J)</th>
+          <th onclick="sortBy('amex')">Amex Pts (J)</th>
+          <th onclick="sortBy('seats')">Seats (J)</th>
+          <th onclick="sortBy('direct')">Routing</th>
+          <th>Airline(s)</th>
+          <th onclick="sortBy('taxes')">Taxes (USD)</th>
+          <th>Book</th>
+        </tr>
+      </thead>
+      <tbody id="results-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Constants
+═══════════════════════════════════════════════════════════════ */
+// Set REMOTE_PROXY to your Cloudflare Worker URL when hosting online.
+// Leave empty to auto-detect: uses localhost when running locally, remote when hosted.
+const REMOTE_PROXY = '';  // e.g. 'https://award-proxy.yourname.workers.dev/proxy/search'
+const PROXY = REMOTE_PROXY ||
+  (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/proxy/search'
+    : 'https://award-proxy.yourname.workers.dev/proxy/search');
+
+const AIRPORTS = {
+  PVG: 'Shanghai', HKG: 'Hong Kong',
+  NRT: 'Tokyo Narita', HND: 'Tokyo Haneda',
+  ICN: 'Seoul Incheon', KIX: 'Osaka Kansai',
+};
+
+// ── Airport autocomplete database ─────────────────────────────
+// { code, name, city, country }
+const AIRPORT_DB = [
+  // ── South America ──
+  {code:'EZE',name:'Ministro Pistarini International',city:'Buenos Aires',country:'AR'},
+  {code:'AEP',name:'Jorge Newbery Airpark',city:'Buenos Aires',country:'AR'},
+  {code:'COR',name:'Pajas Blancas International',city:'Córdoba',country:'AR'},
+  {code:'MDZ',name:'El Plumerillo International',city:'Mendoza',country:'AR'},
+  {code:'BRC',name:'San Carlos de Bariloche',city:'Bariloche',country:'AR'},
+  {code:'GRU',name:'Guarulhos International',city:'São Paulo',country:'BR'},
+  {code:'CGH',name:'Congonhas Airport',city:'São Paulo',country:'BR'},
+  {code:'VCP',name:'Viracopos International',city:'Campinas',country:'BR'},
+  {code:'GIG',name:'Galeão International',city:'Rio de Janeiro',country:'BR'},
+  {code:'SDU',name:'Santos Dumont Airport',city:'Rio de Janeiro',country:'BR'},
+  {code:'BSB',name:'Brasília International',city:'Brasília',country:'BR'},
+  {code:'SSA',name:'Deputado Luís Eduardo Magalhães',city:'Salvador',country:'BR'},
+  {code:'FOR',name:'Pinto Martins International',city:'Fortaleza',country:'BR'},
+  {code:'REC',name:'Recife/Guararapes International',city:'Recife',country:'BR'},
+  {code:'POA',name:'Salgado Filho International',city:'Porto Alegre',country:'BR'},
+  {code:'CWB',name:'Afonso Pena International',city:'Curitiba',country:'BR'},
+  {code:'MAO',name:'Eduardo Gomes International',city:'Manaus',country:'BR'},
+  {code:'BOG',name:'El Dorado International',city:'Bogotá',country:'CO'},
+  {code:'MDE',name:'José María Córdova International',city:'Medellín',country:'CO'},
+  {code:'CLO',name:'Alfonso Bonilla Aragón International',city:'Cali',country:'CO'},
+  {code:'LIM',name:'Jorge Chávez International',city:'Lima',country:'PE'},
+  {code:'SCL',name:'Arturo Merino Benítez International',city:'Santiago',country:'CL'},
+  {code:'PMC',name:'El Tepual International',city:'Puerto Montt',country:'CL'},
+  {code:'UIO',name:'Mariscal Sucre International',city:'Quito',country:'EC'},
+  {code:'GYE',name:'José Joaquín de Olmedo International',city:'Guayaquil',country:'EC'},
+  {code:'CCS',name:'Simón Bolívar International',city:'Caracas',country:'VE'},
+  {code:'MVD',name:'Carrasco International',city:'Montevideo',country:'UY'},
+  {code:'ASU',name:'Silvio Pettirossi International',city:'Asunción',country:'PY'},
+  {code:'VVI',name:'Viru Viru International',city:'Santa Cruz',country:'BO'},
+  {code:'LPB',name:'El Alto International',city:'La Paz',country:'BO'},
+  {code:'PTY',name:'Tocumen International',city:'Panama City',country:'PA'},
+  {code:'HAV',name:'José Martí International',city:'Havana',country:'CU'},
+  {code:'SDQ',name:'Las Américas International',city:'Santo Domingo',country:'DO'},
+  // ── North America ──
+  {code:'JFK',name:'John F. Kennedy International',city:'New York',country:'US'},
+  {code:'LGA',name:'LaGuardia Airport',city:'New York',country:'US'},
+  {code:'EWR',name:'Newark Liberty International',city:'New York / Newark',country:'US'},
+  {code:'LAX',name:'Los Angeles International',city:'Los Angeles',country:'US'},
+  {code:'SFO',name:'San Francisco International',city:'San Francisco',country:'US'},
+  {code:'OAK',name:'Oakland International',city:'Oakland / San Francisco',country:'US'},
+  {code:'SJC',name:'Norman Y. Mineta San José International',city:'San Jose',country:'US'},
+  {code:'ORD',name:"O'Hare International",city:'Chicago',country:'US'},
+  {code:'MDW',name:'Midway International',city:'Chicago',country:'US'},
+  {code:'ATL',name:'Hartsfield–Jackson Atlanta International',city:'Atlanta',country:'US'},
+  {code:'MIA',name:'Miami International',city:'Miami',country:'US'},
+  {code:'FLL',name:'Fort Lauderdale–Hollywood International',city:'Fort Lauderdale',country:'US'},
+  {code:'DFW',name:'Dallas/Fort Worth International',city:'Dallas',country:'US'},
+  {code:'DAL',name:'Dallas Love Field',city:'Dallas',country:'US'},
+  {code:'IAH',name:'George Bush Intercontinental',city:'Houston',country:'US'},
+  {code:'HOU',name:'William P. Hobby Airport',city:'Houston',country:'US'},
+  {code:'SEA',name:'Seattle–Tacoma International',city:'Seattle',country:'US'},
+  {code:'BOS',name:'Logan International',city:'Boston',country:'US'},
+  {code:'IAD',name:'Washington Dulles International',city:'Washington D.C.',country:'US'},
+  {code:'DCA',name:'Ronald Reagan Washington National',city:'Washington D.C.',country:'US'},
+  {code:'BWI',name:'Baltimore/Washington International',city:'Baltimore',country:'US'},
+  {code:'PHX',name:'Phoenix Sky Harbor International',city:'Phoenix',country:'US'},
+  {code:'LAS',name:'Harry Reid International',city:'Las Vegas',country:'US'},
+  {code:'MCO',name:'Orlando International',city:'Orlando',country:'US'},
+  {code:'CLT',name:'Charlotte Douglas International',city:'Charlotte',country:'US'},
+  {code:'MSP',name:'Minneapolis–Saint Paul International',city:'Minneapolis',country:'US'},
+  {code:'DTW',name:'Detroit Metropolitan Wayne County',city:'Detroit',country:'US'},
+  {code:'PHL',name:'Philadelphia International',city:'Philadelphia',country:'US'},
+  {code:'DEN',name:'Denver International',city:'Denver',country:'US'},
+  {code:'SLC',name:'Salt Lake City International',city:'Salt Lake City',country:'US'},
+  {code:'PDX',name:'Portland International',city:'Portland',country:'US'},
+  {code:'SAN',name:'San Diego International',city:'San Diego',country:'US'},
+  {code:'HNL',name:'Daniel K. Inouye International',city:'Honolulu',country:'US'},
+  {code:'ANC',name:'Ted Stevens Anchorage International',city:'Anchorage',country:'US'},
+  {code:'MSY',name:'Louis Armstrong New Orleans International',city:'New Orleans',country:'US'},
+  {code:'TPA',name:'Tampa International',city:'Tampa',country:'US'},
+  {code:'PIT',name:'Pittsburgh International',city:'Pittsburgh',country:'US'},
+  {code:'CVG',name:'Cincinnati/Northern Kentucky International',city:'Cincinnati',country:'US'},
+  {code:'CMH',name:'John Glenn Columbus International',city:'Columbus',country:'US'},
+  {code:'IND',name:'Indianapolis International',city:'Indianapolis',country:'US'},
+  {code:'MKE',name:'General Mitchell International',city:'Milwaukee',country:'US'},
+  {code:'STL',name:'St. Louis Lambert International',city:'St. Louis',country:'US'},
+  {code:'BNA',name:'Nashville International',city:'Nashville',country:'US'},
+  {code:'RDU',name:'Raleigh-Durham International',city:'Raleigh',country:'US'},
+  {code:'MEM',name:'Memphis International',city:'Memphis',country:'US'},
+  {code:'OMA',name:'Eppley Airfield',city:'Omaha',country:'US'},
+  {code:'OGG',name:'Kahului Airport',city:'Maui',country:'US'},
+  {code:'YYZ',name:'Toronto Pearson International',city:'Toronto',country:'CA'},
+  {code:'YVR',name:'Vancouver International',city:'Vancouver',country:'CA'},
+  {code:'YUL',name:'Montréal–Trudeau International',city:'Montreal',country:'CA'},
+  {code:'YYC',name:'Calgary International',city:'Calgary',country:'CA'},
+  {code:'YOW',name:'Ottawa Macdonald–Cartier International',city:'Ottawa',country:'CA'},
+  {code:'YEG',name:'Edmonton International',city:'Edmonton',country:'CA'},
+  {code:'MEX',name:'Benito Juárez International',city:'Mexico City',country:'MX'},
+  {code:'CUN',name:'Cancún International',city:'Cancún',country:'MX'},
+  {code:'GDL',name:'Miguel Hidalgo y Costilla International',city:'Guadalajara',country:'MX'},
+  {code:'MTY',name:'Monterrey International',city:'Monterrey',country:'MX'},
+  {code:'SJD',name:'Los Cabos International',city:'Los Cabos',country:'MX'},
+  // ── Europe ──
+  {code:'LHR',name:'Heathrow Airport',city:'London',country:'GB'},
+  {code:'LGW',name:'Gatwick Airport',city:'London',country:'GB'},
+  {code:'STN',name:'Stansted Airport',city:'London',country:'GB'},
+  {code:'LCY',name:'London City Airport',city:'London',country:'GB'},
+  {code:'LTN',name:'Luton Airport',city:'London',country:'GB'},
+  {code:'MAN',name:'Manchester Airport',city:'Manchester',country:'GB'},
+  {code:'EDI',name:'Edinburgh Airport',city:'Edinburgh',country:'GB'},
+  {code:'GLA',name:'Glasgow International',city:'Glasgow',country:'GB'},
+  {code:'DUB',name:'Dublin Airport',city:'Dublin',country:'IE'},
+  {code:'CDG',name:'Charles de Gaulle Airport',city:'Paris',country:'FR'},
+  {code:'ORY',name:'Orly Airport',city:'Paris',country:'FR'},
+  {code:'NCE',name:'Nice Côte d\'Azur International',city:'Nice',country:'FR'},
+  {code:'LYS',name:'Lyon–Saint Exupéry Airport',city:'Lyon',country:'FR'},
+  {code:'MRS',name:'Marseille Provence Airport',city:'Marseille',country:'FR'},
+  {code:'AMS',name:'Amsterdam Airport Schiphol',city:'Amsterdam',country:'NL'},
+  {code:'FRA',name:'Frankfurt Airport',city:'Frankfurt',country:'DE'},
+  {code:'MUC',name:'Munich Airport',city:'Munich',country:'DE'},
+  {code:'BER',name:'Brandenburg Airport',city:'Berlin',country:'DE'},
+  {code:'DUS',name:'Düsseldorf Airport',city:'Düsseldorf',country:'DE'},
+  {code:'HAM',name:'Hamburg Airport',city:'Hamburg',country:'DE'},
+  {code:'CGN',name:'Cologne Bonn Airport',city:'Cologne',country:'DE'},
+  {code:'STR',name:'Stuttgart Airport',city:'Stuttgart',country:'DE'},
+  {code:'ZRH',name:'Zurich Airport',city:'Zurich',country:'CH'},
+  {code:'GVA',name:'Geneva Airport',city:'Geneva',country:'CH'},
+  {code:'VIE',name:'Vienna International Airport',city:'Vienna',country:'AT'},
+  {code:'MAD',name:'Adolfo Suárez Madrid–Barajas',city:'Madrid',country:'ES'},
+  {code:'BCN',name:'Barcelona–El Prat Airport',city:'Barcelona',country:'ES'},
+  {code:'AGP',name:'Málaga Airport',city:'Málaga',country:'ES'},
+  {code:'PMI',name:'Palma de Mallorca Airport',city:'Palma',country:'ES'},
+  {code:'LIS',name:'Humberto Delgado Airport',city:'Lisbon',country:'PT'},
+  {code:'OPO',name:'Francisco de Sá Carneiro Airport',city:'Porto',country:'PT'},
+  {code:'FCO',name:'Leonardo da Vinci–Fiumicino Airport',city:'Rome',country:'IT'},
+  {code:'CIA',name:'Ciampino–G. B. Pastine International',city:'Rome',country:'IT'},
+  {code:'MXP',name:'Malpensa Airport',city:'Milan',country:'IT'},
+  {code:'LIN',name:'Linate Airport',city:'Milan',country:'IT'},
+  {code:'NAP',name:'Naples International Airport',city:'Naples',country:'IT'},
+  {code:'VCE',name:'Venice Marco Polo Airport',city:'Venice',country:'IT'},
+  {code:'ATH',name:'Athens International Airport',city:'Athens',country:'GR'},
+  {code:'HER',name:'Heraklion International Airport',city:'Heraklion',country:'GR'},
+  {code:'IST',name:'Istanbul Airport',city:'Istanbul',country:'TR'},
+  {code:'SAW',name:'Sabiha Gökçen International',city:'Istanbul',country:'TR'},
+  {code:'OSL',name:'Oslo Gardermoen Airport',city:'Oslo',country:'NO'},
+  {code:'ARN',name:'Stockholm Arlanda Airport',city:'Stockholm',country:'SE'},
+  {code:'CPH',name:'Copenhagen Airport',city:'Copenhagen',country:'DK'},
+  {code:'HEL',name:'Helsinki Airport',city:'Helsinki',country:'FI'},
+  {code:'BRU',name:'Brussels Airport',city:'Brussels',country:'BE'},
+  {code:'WAW',name:'Warsaw Chopin Airport',city:'Warsaw',country:'PL'},
+  {code:'PRG',name:'Václav Havel Airport Prague',city:'Prague',country:'CZ'},
+  {code:'BUD',name:'Budapest Ferenc Liszt International',city:'Budapest',country:'HU'},
+  {code:'LUX',name:'Luxembourg Airport',city:'Luxembourg',country:'LU'},
+  {code:'OTP',name:'Henri Coandă International',city:'Bucharest',country:'RO'},
+  {code:'SOF',name:'Sofia Airport',city:'Sofia',country:'BG'},
+  {code:'BEG',name:'Nikola Tesla Airport',city:'Belgrade',country:'RS'},
+  {code:'ZAG',name:'Zagreb Airport',city:'Zagreb',country:'HR'},
+  {code:'LJU',name:'Ljubljana Jože Pučnik Airport',city:'Ljubljana',country:'SI'},
+  {code:'SVO',name:'Sheremetyevo International',city:'Moscow',country:'RU'},
+  {code:'DME',name:'Domodedovo International',city:'Moscow',country:'RU'},
+  {code:'LED',name:'Pulkovo Airport',city:'St. Petersburg',country:'RU'},
+  {code:'KBP',name:'Boryspil International',city:'Kyiv',country:'UA'},
+  {code:'TLL',name:'Lennart Meri Tallinn Airport',city:'Tallinn',country:'EE'},
+  {code:'RIX',name:'Riga International Airport',city:'Riga',country:'LV'},
+  {code:'VNO',name:'Vilnius Airport',city:'Vilnius',country:'LT'},
+  {code:'KEF',name:'Keflavík International Airport',city:'Reykjavík',country:'IS'},
+  // ── Middle East ──
+  {code:'DXB',name:'Dubai International Airport',city:'Dubai',country:'AE'},
+  {code:'DWC',name:'Al Maktoum International',city:'Dubai',country:'AE'},
+  {code:'AUH',name:'Abu Dhabi International Airport',city:'Abu Dhabi',country:'AE'},
+  {code:'DOH',name:'Hamad International Airport',city:'Doha',country:'QA'},
+  {code:'KWI',name:'Kuwait International Airport',city:'Kuwait City',country:'KW'},
+  {code:'BAH',name:'Bahrain International Airport',city:'Manama',country:'BH'},
+  {code:'MCT',name:'Muscat International Airport',city:'Muscat',country:'OM'},
+  {code:'RUH',name:'King Khalid International Airport',city:'Riyadh',country:'SA'},
+  {code:'JED',name:'King Abdulaziz International Airport',city:'Jeddah',country:'SA'},
+  {code:'MED',name:'Prince Mohammad bin Abdulaziz Airport',city:'Medina',country:'SA'},
+  {code:'AMM',name:'Queen Alia International Airport',city:'Amman',country:'JO'},
+  {code:'BEY',name:'Rafic Hariri International Airport',city:'Beirut',country:'LB'},
+  {code:'TLV',name:'Ben Gurion International Airport',city:'Tel Aviv',country:'IL'},
+  // ── Asia – East ──
+  {code:'PVG',name:'Shanghai Pudong International',city:'Shanghai',country:'CN'},
+  {code:'SHA',name:'Shanghai Hongqiao International',city:'Shanghai',country:'CN'},
+  {code:'PEK',name:'Beijing Capital International',city:'Beijing',country:'CN'},
+  {code:'PKX',name:'Beijing Daxing International',city:'Beijing',country:'CN'},
+  {code:'CAN',name:'Guangzhou Baiyun International',city:'Guangzhou',country:'CN'},
+  {code:'SZX',name:'Shenzhen Bao\'an International',city:'Shenzhen',country:'CN'},
+  {code:'CTU',name:'Chengdu Tianfu International',city:'Chengdu',country:'CN'},
+  {code:'XIY',name:'Xi\'an Xianyang International',city:'Xi\'an',country:'CN'},
+  {code:'HGH',name:'Hangzhou Xiaoshan International',city:'Hangzhou',country:'CN'},
+  {code:'NKG',name:'Nanjing Lukou International',city:'Nanjing',country:'CN'},
+  {code:'KMG',name:'Kunming Changshui International',city:'Kunming',country:'CN'},
+  {code:'WUH',name:'Wuhan Tianhe International',city:'Wuhan',country:'CN'},
+  {code:'CSX',name:'Changsha Huanghua International',city:'Changsha',country:'CN'},
+  {code:'CKG',name:'Chongqing Jiangbei International',city:'Chongqing',country:'CN'},
+  {code:'TAO',name:'Qingdao Jiaodong International',city:'Qingdao',country:'CN'},
+  {code:'HRB',name:'Harbin Taiping International',city:'Harbin',country:'CN'},
+  {code:'SYX',name:'Sanya Phoenix International',city:'Sanya',country:'CN'},
+  {code:'HKG',name:'Hong Kong International Airport',city:'Hong Kong',country:'HK'},
+  {code:'MFM',name:'Macau International Airport',city:'Macau',country:'MO'},
+  {code:'TPE',name:'Taiwan Taoyuan International',city:'Taipei',country:'TW'},
+  {code:'TSA',name:'Taipei Songshan Airport',city:'Taipei',country:'TW'},
+  {code:'KHH',name:'Kaohsiung International Airport',city:'Kaohsiung',country:'TW'},
+  {code:'NRT',name:'Narita International Airport',city:'Tokyo',country:'JP'},
+  {code:'HND',name:'Haneda Airport',city:'Tokyo',country:'JP'},
+  {code:'KIX',name:'Kansai International Airport',city:'Osaka',country:'JP'},
+  {code:'ITM',name:'Itami Airport',city:'Osaka',country:'JP'},
+  {code:'NGO',name:'Chubu Centrair International',city:'Nagoya',country:'JP'},
+  {code:'CTS',name:'New Chitose Airport',city:'Sapporo',country:'JP'},
+  {code:'FUK',name:'Fukuoka Airport',city:'Fukuoka',country:'JP'},
+  {code:'OKA',name:'Naha Airport',city:'Okinawa',country:'JP'},
+  {code:'SDJ',name:'Sendai Airport',city:'Sendai',country:'JP'},
+  {code:'ICN',name:'Incheon International Airport',city:'Seoul',country:'KR'},
+  {code:'GMP',name:'Gimpo International Airport',city:'Seoul',country:'KR'},
+  {code:'PUS',name:'Gimhae International Airport',city:'Busan',country:'KR'},
+  {code:'CJU',name:'Jeju International Airport',city:'Jeju',country:'KR'},
+  {code:'ULN',name:'Chinggis Khaan International',city:'Ulaanbaatar',country:'MN'},
+  // ── Asia – Southeast ──
+  {code:'SIN',name:'Singapore Changi Airport',city:'Singapore',country:'SG'},
+  {code:'KUL',name:'Kuala Lumpur International Airport',city:'Kuala Lumpur',country:'MY'},
+  {code:'BKK',name:'Suvarnabhumi Airport',city:'Bangkok',country:'TH'},
+  {code:'DMK',name:'Don Mueang International Airport',city:'Bangkok',country:'TH'},
+  {code:'HKT',name:'Phuket International Airport',city:'Phuket',country:'TH'},
+  {code:'CNX',name:'Chiang Mai International Airport',city:'Chiang Mai',country:'TH'},
+  {code:'MNL',name:'Ninoy Aquino International Airport',city:'Manila',country:'PH'},
+  {code:'CEB',name:'Mactan–Cebu International Airport',city:'Cebu',country:'PH'},
+  {code:'CGK',name:'Soekarno–Hatta International',city:'Jakarta',country:'ID'},
+  {code:'DPS',name:'Ngurah Rai International Airport',city:'Bali',country:'ID'},
+  {code:'SUB',name:'Juanda International Airport',city:'Surabaya',country:'ID'},
+  {code:'RGN',name:'Yangon International Airport',city:'Yangon',country:'MM'},
+  {code:'SGN',name:'Tan Son Nhat International Airport',city:'Ho Chi Minh City',country:'VN'},
+  {code:'HAN',name:'Noi Bai International Airport',city:'Hanoi',country:'VN'},
+  {code:'DAD',name:'Da Nang International Airport',city:'Da Nang',country:'VN'},
+  {code:'PNH',name:'Phnom Penh International Airport',city:'Phnom Penh',country:'KH'},
+  {code:'REP',name:'Siem Reap–Angkor International',city:'Siem Reap',country:'KH'},
+  {code:'VTE',name:'Wattay International Airport',city:'Vientiane',country:'LA'},
+  // ── Asia – South ──
+  {code:'DEL',name:'Indira Gandhi International Airport',city:'Delhi',country:'IN'},
+  {code:'BOM',name:'Chhatrapati Shivaji Maharaj International',city:'Mumbai',country:'IN'},
+  {code:'MAA',name:'Chennai International Airport',city:'Chennai',country:'IN'},
+  {code:'BLR',name:'Kempegowda International Airport',city:'Bangalore',country:'IN'},
+  {code:'CCU',name:'Netaji Subhas Chandra Bose International',city:'Kolkata',country:'IN'},
+  {code:'HYD',name:'Rajiv Gandhi International Airport',city:'Hyderabad',country:'IN'},
+  {code:'AMD',name:'Sardar Vallabhbhai Patel International',city:'Ahmedabad',country:'IN'},
+  {code:'GOI',name:'Goa International Airport',city:'Goa',country:'IN'},
+  {code:'COK',name:'Cochin International Airport',city:'Kochi',country:'IN'},
+  {code:'CMB',name:'Bandaranaike International Airport',city:'Colombo',country:'LK'},
+  {code:'DAC',name:'Hazrat Shahjalal International',city:'Dhaka',country:'BD'},
+  {code:'KTM',name:'Tribhuvan International Airport',city:'Kathmandu',country:'NP'},
+  {code:'KHI',name:'Jinnah International Airport',city:'Karachi',country:'PK'},
+  {code:'LHE',name:'Allama Iqbal International Airport',city:'Lahore',country:'PK'},
+  {code:'ISB',name:'Islamabad International Airport',city:'Islamabad',country:'PK'},
+  // ── Africa ──
+  {code:'JNB',name:'O.R. Tambo International Airport',city:'Johannesburg',country:'ZA'},
+  {code:'CPT',name:'Cape Town International Airport',city:'Cape Town',country:'ZA'},
+  {code:'DUR',name:'King Shaka International Airport',city:'Durban',country:'ZA'},
+  {code:'NBO',name:'Jomo Kenyatta International Airport',city:'Nairobi',country:'KE'},
+  {code:'ADD',name:'Addis Ababa Bole International',city:'Addis Ababa',country:'ET'},
+  {code:'LOS',name:'Murtala Muhammed International',city:'Lagos',country:'NG'},
+  {code:'ABV',name:'Nnamdi Azikiwe International',city:'Abuja',country:'NG'},
+  {code:'ACC',name:'Kotoka International Airport',city:'Accra',country:'GH'},
+  {code:'CMN',name:'Mohammed V International Airport',city:'Casablanca',country:'MA'},
+  {code:'RAK',name:'Marrakesh Menara Airport',city:'Marrakech',country:'MA'},
+  {code:'TUN',name:'Tunis-Carthage International Airport',city:'Tunis',country:'TN'},
+  {code:'ALG',name:'Houari Boumediene Airport',city:'Algiers',country:'DZ'},
+  {code:'CAI',name:'Cairo International Airport',city:'Cairo',country:'EG'},
+  {code:'HRG',name:'Hurghada International Airport',city:'Hurghada',country:'EG'},
+  {code:'EBB',name:'Entebbe International Airport',city:'Entebbe / Kampala',country:'UG'},
+  {code:'DKR',name:'Blaise Diagne International Airport',city:'Dakar',country:'SN'},
+  {code:'ABJ',name:'Port Bouët Airport',city:'Abidjan',country:'CI'},
+  {code:'DAR',name:'Julius Nyerere International',city:'Dar es Salaam',country:'TZ'},
+  {code:'MPM',name:'Maputo International Airport',city:'Maputo',country:'MZ'},
+  {code:'MRU',name:'Sir Seewoosagur Ramgoolam International',city:'Mauritius',country:'MU'},
+  {code:'SEZ',name:'Seychelles International Airport',city:'Mahé',country:'SC'},
+  {code:'TNR',name:'Ivato International Airport',city:'Antananarivo',country:'MG'},
+  {code:'RUN',name:'Roland Garros Airport',city:'Réunion',country:'RE'},
+  {code:'LFW',name:'Lomé–Tokoin International',city:'Lomé',country:'TG'},
+  {code:'DLA',name:'Douala International Airport',city:'Douala',country:'CM'},
+  // ── Oceania ──
+  {code:'SYD',name:'Sydney Kingsford Smith Airport',city:'Sydney',country:'AU'},
+  {code:'MEL',name:'Melbourne Airport',city:'Melbourne',country:'AU'},
+  {code:'BNE',name:'Brisbane Airport',city:'Brisbane',country:'AU'},
+  {code:'PER',name:'Perth Airport',city:'Perth',country:'AU'},
+  {code:'ADL',name:'Adelaide Airport',city:'Adelaide',country:'AU'},
+  {code:'CBR',name:'Canberra Airport',city:'Canberra',country:'AU'},
+  {code:'HBA',name:'Hobart International Airport',city:'Hobart',country:'AU'},
+  {code:'OOL',name:'Gold Coast Airport',city:'Gold Coast',country:'AU'},
+  {code:'DRW',name:'Darwin International Airport',city:'Darwin',country:'AU'},
+  {code:'AKL',name:'Auckland Airport',city:'Auckland',country:'NZ'},
+  {code:'CHC',name:'Christchurch International Airport',city:'Christchurch',country:'NZ'},
+  {code:'WLG',name:'Wellington International Airport',city:'Wellington',country:'NZ'},
+  {code:'NAN',name:'Nadi International Airport',city:'Nadi',country:'FJ'},
+  {code:'PPT',name:'Faa\'a International Airport',city:'Papeete / Tahiti',country:'PF'},
+  {code:'APW',name:'Faleolo International Airport',city:'Apia',country:'WS'},
+  {code:'HVB',name:'Hervey Bay Airport',city:'Hervey Bay',country:'AU'},
+];
+
+// City code → airport codes (for multi-airport cities)
+const CITY_CODES = {
+  NYC:['JFK','LGA','EWR'], TYO:['NRT','HND'], LON:['LHR','LGW','LCY','STN','LTN'],
+  PAR:['CDG','ORY'], MIL:['MXP','LIN'], ROM:['FCO','CIA'], CHI:['ORD','MDW'],
+  WAS:['IAD','DCA','BWI'], SFB:['SFO','OAK','SJC'], HOU:['IAH','HOU'],
+  DFW:['DFW','DAL'], BUE:['EZE','AEP'], SAO:['GRU','VCP','CGH'], RIO:['GIG','SDU'],
+  OSA:['KIX','ITM'], SEL:['ICN','GMP'], MOW:['SVO','DME'], IST:['IST','SAW'],
+  BKK:['BKK','DMK'], SHA:['PVG','SHA'], BJS:['PEK','PKX'],
+};
+
+// ── Custom destinations state ──────────────────────────────────
+let customDests = new Map(); // code → {code, name, city, country, checked}
+
+// Amex transfer partner source IDs (as returned by seats.aero API)
+const AMEX_SOURCES = ['qatar','ba','flyingblue','aeroplan','ana','avianca','singapore','virginatlantic','delta','iberia','aeromexico','emirates','aerlingus','cathay','jetblue','qantas'];
+const ALL_OTHER_SOURCES = ['american','alaska','united','etihad','turkish','smiles'];
+
+// Per-program metadata  (key = seats.aero source name)
+const PROGRAMS = {
+  qatar:         { label: 'Qatar Airways',        short: 'Qatar',       color: 'var(--c-qatar)',     bg: 'var(--bg-qatar)',     rowCls: 'p-qatar',      amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  ba:            { label: 'British Airways',       short: 'BA',          color: 'var(--c-ba)',        bg: 'var(--bg-ba)',        rowCls: 'p-ba',         amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  flyingblue:    { label: 'Flying Blue',           short: 'FlyBlue',     color: 'var(--c-flyblue)',   bg: 'var(--bg-flyblue)',   rowCls: 'p-flyingblue', amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  aeroplan:      { label: 'Air Canada Aeroplan',   short: 'Aeroplan',    color: 'var(--c-aeroplan)',  bg: 'var(--bg-aeroplan)',  rowCls: 'p-aeroplan',   amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  ana:           { label: 'ANA Mileage Club',      short: 'ANA',         color: 'var(--c-ana)',       bg: 'var(--bg-ana)',       rowCls: 'p-ana',        amexRatio: '1:1',  amexNote: '2-3 días demora', deltaFee: false },
+  avianca:       { label: 'Avianca LifeMiles',     short: 'Avianca',     color: 'var(--c-avianca)',   bg: 'var(--bg-avianca)',   rowCls: 'p-avianca',    amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  singapore:     { label: 'Singapore KrisFlyer',   short: 'Singapore',   color: 'var(--c-singapore)', bg: 'var(--bg-singapore)', rowCls: 'p-singapore',  amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  virginatlantic:{ label: 'Virgin Atlantic',       short: 'Virgin',      color: 'var(--c-virgin)',    bg: 'var(--bg-virgin)',    rowCls: 'p-virgin',     amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  delta:         { label: 'Delta SkyMiles',        short: 'Delta',       color: 'var(--c-delta)',     bg: 'var(--bg-delta)',     rowCls: 'p-delta',      amexRatio: '1:1',  amexNote: '+ transfer fee',  deltaFee: true  },
+  american:      { label: 'American AAdvantage',   short: 'American',    color: '#e05050',            bg: 'rgba(192,57,43,.10)', rowCls: 'p-american',   amexRatio: null,   amexNote: null,              deltaFee: false },
+  alaska:        { label: 'Alaska Mileage Plan',   short: 'Alaska',      color: '#5090d0',            bg: 'rgba(0,100,164,.10)', rowCls: 'p-alaska',     amexRatio: null,   amexNote: null,              deltaFee: false },
+  united:        { label: 'United MileagePlus',    short: 'United',      color: '#6080b0',            bg: 'rgba(0,34,68,.12)',   rowCls: 'p-united',     amexRatio: null,   amexNote: null,              deltaFee: false },
+  etihad:        { label: 'Etihad Guest',           short: 'Etihad',      color: '#d4a030',            bg: 'rgba(189,139,19,.10)',rowCls: 'p-etihad',     amexRatio: null,   amexNote: null,              deltaFee: false },
+  turkish:       { label: 'Turkish Miles&Smiles',  short: 'Turkish',     color: '#e84040',            bg: 'rgba(227,10,23,.08)', rowCls: 'p-turkish',    amexRatio: null,   amexNote: null,              deltaFee: false },
+  emirates:      { label: 'Emirates Skywards',     short: 'Emirates',    color: 'var(--c-emirates)',  bg: 'var(--bg-emirates)',  rowCls: 'p-emirates',   amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  iberia:        { label: 'Iberia Plus',           short: 'Iberia',      color: 'var(--c-iberia)',    bg: 'var(--bg-iberia)',    rowCls: 'p-iberia',     amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  smiles:        { label: 'Gol Smiles',            short: 'Smiles',      color: '#ff8040',            bg: 'rgba(255,102,0,.10)', rowCls: 'p-smiles',     amexRatio: null,   amexNote: null,              deltaFee: false },
+  aeromexico:    { label: 'Aeroméxico Rewards',    short: 'Aeroméxico',  color: 'var(--c-aeromexico)',bg: 'var(--bg-aeromexico)',rowCls: 'p-aeromexico', amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  aerlingus:     { label: 'Aer Lingus AerClub',   short: 'AerClub',     color: 'var(--c-aerlingus)', bg: 'var(--bg-aerlingus)', rowCls: 'p-aerlingus',  amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  cathay:        { label: 'Cathay Pacific',        short: 'Cathay',      color: 'var(--c-cathay)',    bg: 'var(--bg-cathay)',    rowCls: 'p-cathay',     amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  jetblue:       { label: 'JetBlue TrueBlue',      short: 'JetBlue',     color: 'var(--c-jetblue)',   bg: 'var(--bg-jetblue)',   rowCls: 'p-jetblue',    amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  qantas:        { label: 'Qantas Frequent Flyer', short: 'Qantas',      color: 'var(--c-qantas)',    bg: 'var(--bg-qantas)',    rowCls: 'p-qantas',     amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   State
+═══════════════════════════════════════════════════════════════ */
+let allResults = [];
+let sortCol = 'miles';
+let sortDir = 'asc';
+
+/* ═══════════════════════════════════════════════════════════════
+   Init
+═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('seatsaero_key');
+  if (saved) document.getElementById('api-key').value = saved;
+  document.getElementById('api-key').classList.add('masked');
+
+  document.getElementById('api-key').addEventListener('blur', saveKey);
+  document.getElementById('api-key').addEventListener('change', saveKey);
+
+  document.querySelectorAll('.prog-pill input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', syncAmexToggle);
+  });
+
+  initAirportSearch();
+  initOriginSearch();
+});
+
+function saveKey() {
+  const k = document.getElementById('api-key').value.trim();
+  if (k) localStorage.setItem('seatsaero_key', k);
+}
+
+function toggleApiKeyVis() {
+  const inp = document.getElementById('api-key');
+  const btn = document.getElementById('apikey-toggle');
+  inp.classList.toggle('masked');
+  btn.textContent = inp.classList.contains('masked') ? '👁' : '🙈';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Amex toggle
+═══════════════════════════════════════════════════════════════ */
+function toggleAmex() {
+  const btn = document.getElementById('amex-toggle');
+  const newState = !btn.classList.contains('active');
+  AMEX_SOURCES.forEach(src => {
+    const cb = document.querySelector(`#prog-checks input[value="${src}"]`);
+    if (cb) cb.checked = newState;
+  });
+  btn.classList.toggle('active', newState);
+  btn.innerHTML = `<span class="amex-logo">💳</span> Amex Transfer Partners`;
+}
+
+function toggleAllProgs() {
+  const btn = document.getElementById('all-prog-toggle');
+  const newState = !btn.classList.contains('active');
+  document.querySelectorAll('#prog-checks input, #prog-checks-other input').forEach(cb => { cb.checked = newState; });
+  btn.classList.toggle('active', newState);
+  btn.style.color = newState ? '#fff' : 'var(--muted)';
+  syncAmexToggle();
+}
+
+function syncAmexToggle() {
+  const allAmex = AMEX_SOURCES.every(src => {
+    const cb = document.querySelector(`#prog-checks input[value="${src}"]`);
+    return cb && cb.checked;
+  });
+  document.getElementById('amex-toggle').classList.toggle('active', allAmex);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Helpers
+═══════════════════════════════════════════════════════════════ */
+function checkedValues(containerId) {
+  return [...document.querySelectorAll(`#${containerId} input[type=checkbox]:checked`)].map(c => c.value);
+}
+
+function checkedPrograms() {
+  return new Set([
+    ...checkedValues('prog-checks'),
+    ...checkedValues('prog-checks-other'),
+  ]);
+}
+
+function getOrigin() {
+  return (document.getElementById('origin-search').value.trim().toUpperCase() || 'EZE').slice(0,3);
+}
+
+function initOriginSearch() {
+  const input    = document.getElementById('origin-search');
+  const nameDiv  = document.getElementById('origin-name-display');
+  const dropdown = document.getElementById('origin-dropdown');
+  let focusIdx   = -1;
+
+  // Show full name for default
+  const defaultAp = AIRPORT_DB.find(a => a.code === 'EZE');
+  if (defaultAp) nameDiv.textContent = defaultAp.name;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toUpperCase();
+    nameDiv.textContent = '';
+    if (q.length < 1) { closeOrig(); return; }
+    const matches = searchAirports(q);
+    renderOrigDropdown(matches, q);
+    focusIdx = -1;
+  });
+
+  input.addEventListener('keydown', e => {
+    const items = dropdown.querySelectorAll('.airport-option');
+    if (e.key === 'ArrowDown') { e.preventDefault(); focusIdx = Math.min(focusIdx+1, items.length-1); items.forEach((el,i)=>el.classList.toggle('focused',i===focusIdx)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); focusIdx = Math.max(focusIdx-1,0); items.forEach((el,i)=>el.classList.toggle('focused',i===focusIdx)); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (focusIdx>=0&&items[focusIdx]) items[focusIdx].click(); }
+    else if (e.key === 'Escape') closeOrig();
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => {
+      const q = input.value.trim().toUpperCase().slice(0,3);
+      const ap = AIRPORT_DB.find(a => a.code === q);
+      if (ap) { input.value = ap.code; nameDiv.textContent = ap.name; }
+      closeOrig();
+    }, 200);
+  });
+
+  document.addEventListener('click', e => { if (!e.target.closest('.origin-search-wrap')) closeOrig(); });
+
+  function renderOrigDropdown(matches, q) {
+    if (!matches.length) { closeOrig(); return; }
+    dropdown.innerHTML = matches.map((ap,i) => {
+      const hl = s => s.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),
+        m=>`<mark style="background:rgba(74,142,240,.3);color:#a8d0ff;border-radius:2px">${m}</mark>`);
+      return `<div class="airport-option" data-code="${ap.code}">
+        <span class="opt-code">${ap.code}</span>
+        <span class="opt-info"><span class="opt-name">${hl(ap.name)}</span><span class="opt-city">${hl(ap.city)}</span></span>
+        <span class="opt-country">${ap.country}</span></div>`;
+    }).join('');
+    dropdown.classList.add('open');
+    dropdown.querySelectorAll('.airport-option').forEach(el => {
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();
+        const ap = AIRPORT_DB.find(a => a.code === el.dataset.code);
+        if (ap) { input.value = ap.code; nameDiv.textContent = ap.name; }
+        closeOrig();
+      });
+    });
+  }
+
+  function closeOrig() { dropdown.classList.remove('open'); dropdown.innerHTML = ''; focusIdx=-1; }
+}
+
+function checkedDests() {
+  // ASIA presets
+  const presets = [...document.querySelectorAll('#dest-checks input[type=checkbox]:checked')].map(c => c.value);
+  // Custom added destinations (only checked ones)
+  const custom = [...customDests.values()].filter(d => d.checked).map(d => d.code);
+  return [...new Set([...presets, ...custom])];
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Airport autocomplete
+═══════════════════════════════════════════════════════════════ */
+function initAirportSearch() {
+  const input    = document.getElementById('airport-search');
+  const dropdown = document.getElementById('airport-dropdown');
+  let focusIdx   = -1;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toUpperCase();
+    if (q.length < 1) { closeDropdown(); return; }
+    const matches = searchAirports(q);
+    renderDropdown(matches, q);
+    focusIdx = -1;
+  });
+
+  input.addEventListener('keydown', e => {
+    const items = dropdown.querySelectorAll('.airport-option');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusIdx = Math.min(focusIdx + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('focused', i === focusIdx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusIdx = Math.max(focusIdx - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('focused', i === focusIdx));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focusIdx >= 0 && items[focusIdx]) items[focusIdx].click();
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.airport-search-wrap')) closeDropdown();
+  });
+
+  function searchAirports(q) {
+    const results = [];
+    const seen    = new Set();
+
+    const addAirport = (ap) => {
+      if (!seen.has(ap.code) && !customDests.has(ap.code)) {
+        seen.add(ap.code); results.push(ap);
+      }
+    };
+
+    // 1. City code expansions (NYC, TYO, LON…)
+    if (CITY_CODES[q]) {
+      CITY_CODES[q].forEach(code => {
+        const ap = AIRPORT_DB.find(a => a.code === code);
+        if (ap) addAirport(ap);
+      });
+    }
+
+    // 2. Exact IATA code match
+    AIRPORT_DB.filter(a => a.code === q).forEach(addAirport);
+
+    // 3. Starts-with code
+    AIRPORT_DB.filter(a => a.code.startsWith(q) && a.code !== q).forEach(addAirport);
+
+    // 4. City starts-with
+    AIRPORT_DB.filter(a => a.city.toUpperCase().startsWith(q)).forEach(addAirport);
+
+    // 5. City contains
+    AIRPORT_DB.filter(a => a.city.toUpperCase().includes(q) && !a.city.toUpperCase().startsWith(q)).forEach(addAirport);
+
+    // 6. Name contains
+    AIRPORT_DB.filter(a => a.name.toUpperCase().includes(q)).forEach(addAirport);
+
+    return results.slice(0, 8);
+  }
+
+  function renderDropdown(matches, q) {
+    if (!matches.length) { closeDropdown(); return; }
+    dropdown.innerHTML = matches.map((ap, i) => {
+      const hl = (s) => s.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi'),
+        m => `<mark style="background:rgba(74,142,240,.3);color:#a8d0ff;border-radius:2px">${m}</mark>`);
+      return `<div class="airport-option" data-code="${ap.code}" data-idx="${i}">
+        <span class="opt-code">${ap.code}</span>
+        <span class="opt-info">
+          <span class="opt-name">${hl(ap.name)}</span>
+          <span class="opt-city">${hl(ap.city)}</span>
+        </span>
+        <span class="opt-country">${ap.country}</span>
+      </div>`;
+    }).join('');
+    dropdown.classList.add('open');
+
+    dropdown.querySelectorAll('.airport-option').forEach(el => {
+      el.addEventListener('click', () => {
+        const code = el.dataset.code;
+        const ap   = AIRPORT_DB.find(a => a.code === code);
+        if (ap) addCustomDest(ap);
+        input.value = '';
+        closeDropdown();
+        input.focus();
+      });
+    });
+  }
+
+  function closeDropdown() {
+    dropdown.classList.remove('open');
+    dropdown.innerHTML = '';
+    focusIdx = -1;
+  }
+}
+
+function addCustomDest(ap) {
+  if (customDests.has(ap.code)) return;
+  customDests.set(ap.code, { ...ap, checked: true });
+  // Also update the shared AIRPORTS lookup for table display
+  AIRPORTS[ap.code] = ap.city;
+  renderCustomPills();
+}
+
+function removeCustomDest(code) {
+  customDests.delete(code);
+  renderCustomPills();
+}
+
+function renderCustomPills() {
+  const container = document.getElementById('custom-dest-pills');
+  if (!customDests.size) { container.innerHTML = ''; return; }
+  container.innerHTML = [...customDests.values()].map(d => `
+    <span class="custom-pill">
+      <input type="checkbox" ${d.checked ? 'checked' : ''} onchange="customDests.get('${d.code}').checked=this.checked">
+      <span class="code">${d.code}</span>
+      <span class="city">${d.city}</span>
+      <button class="remove-btn" onclick="removeCustomDest('${d.code}')" title="Remove">✕</button>
+    </span>
+  `).join('');
+}
+
+function setLoading(on, text = '') {
+  document.getElementById('loading').style.display = on ? 'flex' : 'none';
+  document.getElementById('search-btn').disabled = on;
+  if (text) document.getElementById('loading-text').textContent = text;
+}
+
+function setProgress(pct) {
+  const wrap = document.getElementById('prog-bar-wrap');
+  const bar  = document.getElementById('prog-bar');
+  wrap.style.display = 'block';
+  bar.style.width = Math.round(pct) + '%';
+  if (pct >= 100) setTimeout(() => { wrap.style.display = 'none'; }, 600);
+}
+
+function showError(msg)   { const el = document.getElementById('error-box');   el.textContent = msg; el.style.display = 'block'; }
+function hideError()      { document.getElementById('error-box').style.display = 'none'; }
+function showWarning(msg) { const el = document.getElementById('warning-box'); el.textContent = msg; el.style.display = 'block'; }
+function hideWarning()    { document.getElementById('warning-box').style.display = 'none'; }
+
+function fmtDate(s) {
+  if (!s) return '—';
+  try {
+    const d = new Date(s.length === 10 ? s + 'T12:00:00' : s);
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return s; }
+}
+
+function fmtMiles(n) {
+  return (n && n > 0) ? Number(n).toLocaleString('en-US') : '—';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   API
+═══════════════════════════════════════════════════════════════ */
+async function fetchPage(params, apiKey, cursor) {
+  const url = new URL(PROXY);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  if (cursor) url.searchParams.set('cursor', cursor);
+
+  const res = await fetch(url.toString(), { headers: { 'X-Api-Key': apiKey } });
+
+  let body;
+  try { body = await res.json(); } catch { body = { error: `HTTP ${res.status} — invalid JSON` }; }
+  if (!res.ok) throw new Error(body?.error || body?.message || `HTTP ${res.status}`);
+  return body;
+}
+
+async function fetchDest(dest, start, end, apiKey, onStatus) {
+  // No `sources` filter — get ALL programs from API, filter client-side
+  const params = {
+    origin_airport:      getOrigin(),
+    destination_airport: dest,
+    start_date:          start,
+    end_date:            end,
+    take:                '1000',
+  };
+
+  let results = [], cursor = null, page = 0;
+  while (true) {
+    page++;
+    onStatus(`${dest} page ${page}…`);
+    const data = await fetchPage(params, apiKey, cursor);
+    results.push(...(data.data || data.results || []));
+    if (data.hasMore && data.cursor) cursor = data.cursor;
+    else break;
+  }
+  return results;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Date Range Picker
+═══════════════════════════════════════════════════════════════ */
+(function() {
+  let drpViewYear, drpViewMonth;  // left calendar month
+  let drpStart = null, drpEnd = null; // Date objects (local midnight)
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  function toYMD(d) {
+    // returns YYYY-MM-DD string in local time
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function parseYMD(s) {
+    if (!s) return null;
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+  function fmt(d) {
+    if (!d) return '';
+    return MONTHS[d.getMonth()].slice(0,3) + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+
+  function drpRender() {
+    const container = document.getElementById('drp-months');
+    container.innerHTML = '';
+    for (let offset = 0; offset < 2; offset++) {
+      let m = drpViewMonth + offset, y = drpViewYear;
+      if (m > 11) { m -= 12; y++; }
+      container.appendChild(renderMonth(y, m));
+    }
+  }
+
+  function renderMonth(year, month) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const wrap = document.createElement('div');
+    wrap.className = 'drp-month';
+    wrap.innerHTML = `<div class="drp-month-title">${MONTHS[month]} ${year}</div>`;
+    const grid = document.createElement('div');
+    grid.className = 'drp-grid';
+    DAYS.forEach(d => { const el = document.createElement('div'); el.className='drp-dow'; el.textContent=d; grid.appendChild(el); });
+    const firstDow = new Date(year, month, 1).getDay();
+    for (let i = 0; i < firstDow; i++) {
+      const el = document.createElement('div'); el.className='drp-day drp-empty'; grid.appendChild(el);
+    }
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(year, month, day);
+      const el = document.createElement('div');
+      el.className = 'drp-day';
+      el.textContent = day;
+      if (d < today) {
+        el.classList.add('drp-past');
+      } else {
+        const isStart = drpStart && d.getTime() === drpStart.getTime();
+        const isEnd   = drpEnd   && d.getTime() === drpEnd.getTime();
+        const inRange = drpStart && drpEnd && d > drpStart && d < drpEnd;
+        if (isStart) el.classList.add('drp-start');
+        if (isEnd)   el.classList.add('drp-end');
+        if (inRange || isStart || isEnd) el.classList.add('drp-in-range');
+        el.addEventListener('mouseenter', () => drpHover(d));
+        el.addEventListener('click',      () => drpPick(d));
+      }
+      grid.appendChild(el);
+    }
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function drpHover(d) {
+    // preview range while picking end date
+    if (!drpStart || drpEnd) return;
+    if (d <= drpStart) return;
+    // temporarily set end for rendering
+    drpEnd = d;
+    drpRender();
+    drpEnd = null;
+  }
+
+  function drpPick(d) {
+    if (!drpStart || drpEnd || d < drpStart) {
+      // start over
+      drpStart = d; drpEnd = null;
+      document.getElementById('drp-hint').textContent = 'Now click an end date';
+      document.getElementById('drp-done').disabled = true;
+    } else if (d.getTime() === drpStart.getTime()) {
+      // same day = reset
+      drpStart = null; drpEnd = null;
+      document.getElementById('drp-hint').textContent = 'Click a start date';
+      document.getElementById('drp-done').disabled = true;
+    } else {
+      drpEnd = d;
+      document.getElementById('drp-hint').textContent = fmt(drpStart) + '  →  ' + fmt(drpEnd);
+      document.getElementById('drp-done').disabled = false;
+    }
+    drpRender();
+  }
+
+  window.drpOpen = function() {
+    const now = new Date();
+    drpViewYear  = now.getFullYear();
+    drpViewMonth = now.getMonth();
+    drpRender();
+    const overlay = document.getElementById('drp-overlay');
+    overlay.classList.add('open');
+    document.getElementById('drp-trigger').classList.add('active');
+    document.getElementById('drp-done').disabled = !(drpStart && drpEnd);
+    if (drpStart && drpEnd) {
+      document.getElementById('drp-hint').textContent = fmt(drpStart) + '  →  ' + fmt(drpEnd);
+    } else {
+      document.getElementById('drp-hint').textContent = drpStart ? 'Now click an end date' : 'Click a start date';
+    }
+  };
+
+  window.drpShift = function(dir) {
+    drpViewMonth += dir;
+    if (drpViewMonth < 0)  { drpViewMonth = 11; drpViewYear--; }
+    if (drpViewMonth > 11) { drpViewMonth = 0;  drpViewYear++; }
+    drpRender();
+  };
+
+  window.drpOverlayClick = function(e) {
+    if (e.target === document.getElementById('drp-overlay')) drpClose();
+  };
+
+  window.drpClear = function() {
+    drpStart = null; drpEnd = null;
+    document.getElementById('start-date').value = '';
+    document.getElementById('end-date').value   = '';
+    document.getElementById('drp-label').textContent = 'Select dates';
+    document.getElementById('drp-hint').textContent  = 'Click a start date';
+    document.getElementById('drp-done').disabled = true;
+    drpRender();
+  };
+
+  window.drpDone = function() {
+    if (!drpStart || !drpEnd) return;
+    document.getElementById('start-date').value = toYMD(drpStart);
+    document.getElementById('end-date').value   = toYMD(drpEnd);
+    document.getElementById('drp-label').textContent = fmt(drpStart) + '  →  ' + fmt(drpEnd);
+    drpClose();
+  };
+
+  function drpClose() {
+    document.getElementById('drp-overlay').classList.remove('open');
+    document.getElementById('drp-trigger').classList.remove('active');
+  }
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   Search orchestration
+═══════════════════════════════════════════════════════════════ */
+async function startSearch() {
+  hideError(); hideWarning();
+
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!apiKey) { showError('Enter your Seats.aero API key.'); return; }
+  saveKey();
+
+  const dests    = checkedDests();
+  const programs = checkedPrograms();   // Set of selected source names
+  const start    = document.getElementById('start-date').value;
+  const end      = document.getElementById('end-date').value;
+
+  if (!dests.length)    { showError('Select at least one destination.'); return; }
+  if (!programs.size) { showError('Select at least one mileage program.'); return; }
+  if (!start || !end)   { showError('Select a date range using the calendar.'); return; }
+  if (start > end)      { showError('Start date must be before end date.'); return; }
+
+  setLoading(true, 'Starting search…');
+  setProgress(0);
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('summary-bar').style.display     = 'none';
+  document.getElementById('debug-panel').style.display     = 'none';
+  allResults = [];
+
+  try {
+    let done = 0;
+    const total = dests.length;
+
+    const promises = dests.map(dest =>
+      fetchDest(dest, start, end, apiKey, txt => {
+        setLoading(true, `Fetching ${txt}`);
+      }).then(rows => { done++; setProgress((done / total) * 100); return rows; })
+    );
+
+    const nested = await Promise.all(promises);
+    const raw = nested.flat();
+    const uniqueSrcs = [...new Set(raw.map(r => r.Source || r.Route?.Source || '?'))];
+    const withJ = raw.filter(r => r.JMileageCostRaw > 0 || r.YMileageCostRaw > 0 || r.WMileageCostRaw > 0);
+    // Filter: only business class with mileage cost, AND only selected programs
+    allResults = raw.filter(r => {
+      if (!(r.JMileageCostRaw > 0 || r.YMileageCostRaw > 0 || r.WMileageCostRaw > 0)) return false;
+      const src = r.Source || r.Route?.Source || '';
+      return programs.size === 0 || programs.has(src);
+    });
+    // Show debug panel
+    const dbg = document.getElementById('debug-panel');
+    const srcCounts = {};
+    withJ.forEach(r => { const s = r.Source || r.Route?.Source || '?'; srcCounts[s] = (srcCounts[s]||0)+1; });
+    document.getElementById('debug-text').innerHTML =
+      `Raw from API: <b>${raw.length}</b> rows &nbsp;|&nbsp; ` +
+      `With J mileage: <b>${withJ.length}</b> &nbsp;|&nbsp; ` +
+      `After program filter: <b>${allResults.length}</b><br>` +
+      `Sources in J results: ${Object.entries(srcCounts).map(([k,v])=>`${k}(${v})`).join(', ') || 'none'}<br>` +
+      `Selected programs: ${[...programs].join(', ')}`;
+    dbg.style.display = 'block';
+
+    if (allResults.length === 0) {
+      showError('No business class availability found. Try expanding the date range or selecting more programs.');
+    } else {
+      displayResults();
+    }
+  } catch (err) {
+    let msg = err.message;
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ECONNREFUSED')) {
+      msg = 'Cannot reach the proxy server. Make sure it is running:\n  node proxy.js';
+    }
+    showError('Search failed: ' + msg);
+    console.error('[AwardSearch] error:', err);
+  } finally {
+    setLoading(false);
+    setProgress(100);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Sorting
+═══════════════════════════════════════════════════════════════ */
+function getVal(r, col) {
+  const prog = r.Source || r.Route?.Source || '';
+  switch (col) {
+    case 'date':    return r.Date || '';
+    case 'dest':    return r.Route?.DestinationAirport || r.DestinationAirport || '';
+    case 'prog':    return prog;
+    case 'yecon':   return r.YMileageCostRaw || 999_999_999;
+    case 'wpremeco':return r.WMileageCostRaw || 999_999_999;
+    case 'miles':   return r.JMileageCostRaw || 999_999_999;
+    case 'amex':    return r.JMileageCostRaw || 999_999_999;
+    case 'seats':   return r.JRemainingSeats ?? 0;
+    case 'direct':  return r.JDirect ? 0 : 1;
+    case 'taxes':   return r.JTotalTaxesRaw ?? 999_999;
+    default:       return '';
+  }
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortCol = col; sortDir = 'asc'; }
+  renderTable();
+  updateSortHeaders();
+}
+
+function updateSortHeaders() {
+  const cols = ['date','dest','prog','yecon','wpremeco','miles','amex','seats','direct',null,'taxes',null];
+  document.querySelectorAll('thead th').forEach((th, i) => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (cols[i] === sortCol) th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Render
+═══════════════════════════════════════════════════════════════ */
+function displayResults() {
+  sortCol = 'miles'; sortDir = 'asc';
+  renderTable();
+  updateSortHeaders();
+  renderSummary();
+  document.getElementById('results-section').style.display = 'block';
+  document.getElementById('summary-bar').style.display     = 'flex';
+}
+
+function renderTable() {
+  const sorted = [...allResults].sort((a, b) => {
+    const av = getVal(a, sortCol), bv = getVal(b, sortCol);
+    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+
+  document.getElementById('results-title').textContent =
+    `${sorted.length.toLocaleString('en-US')} Result${sorted.length !== 1 ? 's' : ''}`;
+
+  const tbody = document.getElementById('results-tbody');
+  if (!sorted.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="12">No results to display.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = sorted.map(r => {
+    const dest     = r.Route?.DestinationAirport || r.DestinationAirport || '?';
+    const prog     = r.Source || r.Route?.Source || 'unknown';
+    const miles    = r.JMileageCostRaw || 0;
+    const seats    = r.JRemainingSeats != null ? r.JRemainingSeats : '?';
+    const isDirect = !!r.JDirect;
+    const taxes    = r.JTotalTaxesRaw ?? null;
+    const airlines = r.JAirlines || '';
+    const isCheap  = miles > 0 && miles < 100_000;
+    const info     = PROGRAMS[prog] || { label: prog, color: 'var(--muted)', bg: 'transparent', rowCls: '', amexRatio: null, amexNote: null, deltaFee: false };
+    const cityName = AIRPORTS[dest] || '';
+
+    // Badge style derived from program colour
+    const badgeStyle = `color:${info.color};background:${info.bg};border:1px solid ${info.color}30`;
+
+    // Amex column
+    let amexCell = '—';
+    if (miles > 0 && info.amexRatio) {
+      amexCell = miles.toLocaleString('en-US');
+      if (info.amexNote) {
+        amexCell += ` <span class="amex-note${info.deltaFee ? ' warn' : ''}">(${info.amexNote})</span>`;
+      }
+    }
+
+    const yMiles = r.YMileageCostRaw || 0;
+    const wMiles = r.WMileageCostRaw || 0;
+
+    return `<tr class="${info.rowCls}${isCheap ? ' cheap' : ''}">
+      <td class="td-date">${fmtDate(r.Date)}</td>
+      <td><strong>${dest}</strong>${cityName ? ` <span style="color:var(--muted);font-size:11px">${cityName}</span>` : ''}</td>
+      <td><span class="prog-badge" style="${badgeStyle}">${info.label}</span></td>
+      <td class="td-miles">${yMiles > 0 ? fmtMiles(yMiles) : '—'}</td>
+      <td class="td-miles">${wMiles > 0 ? fmtMiles(wMiles) : '—'}</td>
+      <td class="td-miles">${fmtMiles(miles)}</td>
+      <td class="td-amex">${amexCell}</td>
+      <td>${seats}</td>
+      <td>${isDirect
+        ? '<span class="route-badge direct-yes">✈ Direct</span>'
+        : '<span class="route-badge direct-no">⟳ Connecting</span>'}</td>
+      <td style="color:var(--muted);font-size:12px">${airlines || '—'}</td>
+      <td>${taxes != null && taxes > 0 ? '$' + Math.ceil(taxes / 100).toLocaleString('en-US') : '—'}</td>
+      <td>${bookingLink(prog, 'EZE', dest, r.Date, airlines)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSummary() {
+  const n = allResults.length;
+  document.getElementById('sum-total').textContent    = n.toLocaleString('en-US');
+  document.getElementById('sum-sub-total').textContent = 'business class options';
+
+  const withMiles = allResults.filter(r => r.JMileageCostRaw > 0);
+  if (withMiles.length) {
+    const cheapest  = Math.min(...withMiles.map(r => r.JMileageCostRaw));
+    const cheapRow  = withMiles.find(r => r.JMileageCostRaw === cheapest);
+    const cDest     = cheapRow?.Route?.DestinationAirport || cheapRow?.DestinationAirport || '';
+    const cProg     = cheapRow?.Source || cheapRow?.Route?.Source || '';
+    document.getElementById('sum-cheapest').textContent    = cheapest.toLocaleString('en-US') + ' mi';
+    document.getElementById('sum-cheapest-sub').textContent =
+      [AIRPORTS[cDest] || cDest, PROGRAMS[cProg]?.short || cProg].filter(Boolean).join(' · ');
+  }
+
+  const under = allResults.filter(r => r.JMileageCostRaw > 0 && r.JMileageCostRaw < 100_000).length;
+  document.getElementById('sum-under100k').textContent = under.toLocaleString('en-US');
+
+  const counts = {};
+  allResults.forEach(r => {
+    const p = r.Source || r.Route?.Source || 'unknown';
+    counts[p] = (counts[p] || 0) + 1;
+  });
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  if (top) {
+    document.getElementById('sum-top-prog').textContent    = PROGRAMS[top[0]]?.short || top[0];
+    document.getElementById('sum-top-prog-sub').textContent = top[1].toLocaleString('en-US') + ' results';
+  }
+
+  const directCount = allResults.filter(r => r.JDirect).length;
+  document.getElementById('sum-direct').textContent = directCount.toLocaleString('en-US');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Booking links
+═══════════════════════════════════════════════════════════════ */
+function bookingLink(prog, origin, dest, date, airlines) {
+  const url = bookingUrl(prog, origin, dest, date, airlines);
+  if (!url) return '<span style="color:var(--muted2);font-size:11px">—</span>';
+  return `<a href="${url}" target="_blank" rel="noopener" class="btn-book">Book</a>`;
+}
+
+function bookingUrl(prog, origin, dest, dateStr, airlines) {
+  // Format date components
+  const d    = dateStr ? new Date(dateStr.length === 10 ? dateStr + 'T12:00:00' : dateStr) : null;
+  const yyyy = d ? d.getFullYear() : '';
+  const mm   = d ? String(d.getMonth() + 1).padStart(2,'0') : '';
+  const dd   = d ? String(d.getDate()).padStart(2,'0') : '';
+  const mmdd = `${mm}${dd}`;   // MMDD
+  const yyyymmdd = `${yyyy}-${mm}-${dd}`;
+
+  switch (prog) {
+    case 'qatar':
+      // Qatar Airways Privilege Club — award search
+      return `https://www.qatarairways.com/en/privilege-club/redeem-avios.html?bookingClass=J&origin=${origin}&destination=${dest}&departureDate=${yyyymmdd}&adults=1&type=OW`;
+
+    case 'ba':
+      // British Airways Executive Club — Avios redemption
+      return `https://www.britishairways.com/en-gb/executive-club/spending-avios/avios-flight-reward?from=${origin}&to=${dest}&depart=${yyyy}-${mm}-${dd}&cabin=J&adults=1&oneWay=true`;
+
+    case 'flyingblue':
+      // Flying Blue (Air France / KLM)
+      return `https://www.airfrance.com/en/search/results?pax=1:0:0:0:0:0:0:0&cabinClass=BUSINESS&bookingFlow=REWARD&origin=${origin}&destination=${dest}&departureDate=${yyyymmdd}`;
+
+    case 'aeroplan':
+      // Air Canada Aeroplan
+      return `https://www.aircanada.com/aeroplan/redeem/availability/outbound?org0=${origin}&dest0=${dest}&departureDate0=${yyyymmdd}&ADT=1&YTH=0&CHD=0&INF=0&INS=0&tripType=O&marketCode=INT`;
+
+    case 'ana':
+      // ANA Mileage Club
+      return `https://www.ana.co.jp/en/jp/amc/flight-miles/exchange/award/availability/?type=OW&dep=${origin}&arr=${dest}&depDate=${yyyy}${mm}${dd}&cabin=C&adults=1`;
+
+    case 'avianca':
+      // Avianca LifeMiles
+      return `https://www.lifemiles.com/eng/bus/availabilities.aspx?origen=${origin}&destino=${dest}&fechaSalida=${mm}%2F${dd}%2F${yyyy}&adultos=1&ninos=0&infantes=0&clase=C&ida=true`;
+
+    case 'singapore':
+      // Singapore KrisFlyer
+      return `https://www.singaporeair.com/en_UK/ppsclub-krisflyer/use-miles/book-award-flights/?tripType=O&cabin=J&numPax=1&depAirport=${origin}&arrAirport=${dest}&depDate=${dd}${mm}${yyyy}`;
+
+    case 'virginatlantic':
+      // Virgin Atlantic Flying Club
+      return `https://www.virginatlantic.com/en-gb/flying-club/redeem/reward-flights?departureAirportCode=${origin}&arrivalAirportCode=${dest}&departureDate=${yyyy}-${mm}-${dd}&cabin=Upper&adults=1`;
+
+    case 'delta':
+      // Delta SkyMiles
+      return `https://www.delta.com/us/en/flight-search/search-results?from=${origin}&to=${dest}&departureDate=${yyyy}-${mm}-${dd}&cabinFilter=Business&flightType=ONE_WAY&numberOfPassengers=1&showSkyMilesOnly=true`;
+
+    case 'iberia':
+      // Iberia Plus
+      return `https://www.iberia.com/en/flights/${origin}/${dest}/?departureDate=${yyyy}-${mm}-${dd}&cabin=C&adults=1&children=0&infants=0&flightType=OW&loyaltyMode=true`;
+
+    default:
+      // Fallback: seats.aero search page
+      return `https://seats.aero/search?origin=${origin}&destination=${dest}&date=${yyyymmdd}&source=${prog}`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CSV Export
+═══════════════════════════════════════════════════════════════ */
+function exportCSV() {
+  if (!allResults.length) return;
+
+  const headers = ['Date','Destination','City','Program','Economy (Y)','Prem. Econ (W)','Business (J)','Amex Pts Needed','Amex Note','Seats','Routing','Airline(s)','Taxes (USD)','Booking URL'];
+  const rows = allResults.map(r => {
+    const dest  = r.Route?.DestinationAirport || r.DestinationAirport || '';
+    const prog  = r.Source || r.Route?.Source || '';
+    const info  = PROGRAMS[prog] || {};
+    const miles = r.JMileageCostRaw || '';
+    const taxes = r.JTotalTaxesRaw ? Math.ceil(r.JTotalTaxesRaw / 100) : '';
+    const amexPts = (miles && info.amexRatio) ? miles : '';
+    return [
+      r.Date || '',
+      dest,
+      AIRPORTS[dest] || '',
+      info.label || prog,
+      r.YMileageCostRaw || '',
+      r.WMileageCostRaw || '',
+      miles,
+      amexPts,
+      info.amexNote || '',
+      r.JRemainingSeats ?? '',
+      r.JDirect ? 'Direct' : 'Connecting',
+      r.JAirlines || '',
+      taxes,
+      bookingUrl(prog, 'EZE', dest, r.Date, r.JAirlines || ''),
+    ];
+  });
+
+  const csv = [headers, ...rows]
+    .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\r\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a    = Object.assign(document.createElement('a'), {
+    href:     URL.createObjectURL(blob),
+    download: `award-flights-eze-asia-${new Date().toISOString().slice(0,10)}.csv`,
+  });
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+</script>
+</body>
+</html>
