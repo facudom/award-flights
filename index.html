@@ -1346,28 +1346,29 @@ const ALL_OTHER_SOURCES = ['american','alaska','united','etihad','turkish','smil
 
 // Per-program metadata  (key = seats.aero source name)
 const PROGRAMS = {
-  qatar:         { label: 'Qatar Airways',        short: 'Qatar',       color: 'var(--c-qatar)',     bg: 'var(--bg-qatar)',     rowCls: 'p-qatar',      amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  ba:            { label: 'British Airways',       short: 'BA',          color: 'var(--c-ba)',        bg: 'var(--bg-ba)',        rowCls: 'p-ba',         amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  flyingblue:    { label: 'Flying Blue',           short: 'FlyBlue',     color: 'var(--c-flyblue)',   bg: 'var(--bg-flyblue)',   rowCls: 'p-flyingblue', amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  aeroplan:      { label: 'Air Canada Aeroplan',   short: 'Aeroplan',    color: 'var(--c-aeroplan)',  bg: 'var(--bg-aeroplan)',  rowCls: 'p-aeroplan',   amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  ana:           { label: 'ANA Mileage Club',      short: 'ANA',         color: 'var(--c-ana)',       bg: 'var(--bg-ana)',       rowCls: 'p-ana',        amexRatio: '1:1',  amexNote: '2-3 días demora', deltaFee: false },
-  avianca:       { label: 'Avianca LifeMiles',     short: 'Avianca',     color: 'var(--c-avianca)',   bg: 'var(--bg-avianca)',   rowCls: 'p-avianca',    amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  singapore:     { label: 'Singapore KrisFlyer',   short: 'Singapore',   color: 'var(--c-singapore)', bg: 'var(--bg-singapore)', rowCls: 'p-singapore',  amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  virginatlantic:{ label: 'Virgin Atlantic',       short: 'Virgin',      color: 'var(--c-virgin)',    bg: 'var(--bg-virgin)',    rowCls: 'p-virgin',     amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  delta:         { label: 'Delta SkyMiles',        short: 'Delta',       color: 'var(--c-delta)',     bg: 'var(--bg-delta)',     rowCls: 'p-delta',      amexRatio: '1:1',  amexNote: '+ transfer fee',  deltaFee: true  },
-  american:      { label: 'American AAdvantage',   short: 'American',    color: '#e05050',            bg: 'rgba(192,57,43,.10)', rowCls: 'p-american',   amexRatio: null,   amexNote: null,              deltaFee: false },
-  alaska:        { label: 'Alaska Mileage Plan',   short: 'Alaska',      color: '#5090d0',            bg: 'rgba(0,100,164,.10)', rowCls: 'p-alaska',     amexRatio: null,   amexNote: null,              deltaFee: false },
-  united:        { label: 'United MileagePlus',    short: 'United',      color: '#6080b0',            bg: 'rgba(0,34,68,.12)',   rowCls: 'p-united',     amexRatio: null,   amexNote: null,              deltaFee: false },
-  etihad:        { label: 'Etihad Guest',           short: 'Etihad',      color: '#d4a030',            bg: 'rgba(189,139,19,.10)',rowCls: 'p-etihad',     amexRatio: null,   amexNote: null,              deltaFee: false },
-  turkish:       { label: 'Turkish Miles&Smiles',  short: 'Turkish',     color: '#e84040',            bg: 'rgba(227,10,23,.08)', rowCls: 'p-turkish',    amexRatio: null,   amexNote: null,              deltaFee: false },
-  emirates:      { label: 'Emirates Skywards',     short: 'Emirates',    color: 'var(--c-emirates)',  bg: 'var(--bg-emirates)',  rowCls: 'p-emirates',   amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  iberia:        { label: 'Iberia Plus',           short: 'Iberia',      color: 'var(--c-iberia)',    bg: 'var(--bg-iberia)',    rowCls: 'p-iberia',     amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  smiles:        { label: 'Gol Smiles',            short: 'Smiles',      color: '#ff8040',            bg: 'rgba(255,102,0,.10)', rowCls: 'p-smiles',     amexRatio: null,   amexNote: null,              deltaFee: false },
-  aeromexico:    { label: 'Aeroméxico Rewards',    short: 'Aeroméxico',  color: 'var(--c-aeromexico)',bg: 'var(--bg-aeromexico)',rowCls: 'p-aeromexico', amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  aerlingus:     { label: 'Aer Lingus AerClub',   short: 'AerClub',     color: 'var(--c-aerlingus)', bg: 'var(--bg-aerlingus)', rowCls: 'p-aerlingus',  amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  cathay:        { label: 'Cathay Pacific',        short: 'Cathay',      color: 'var(--c-cathay)',    bg: 'var(--bg-cathay)',    rowCls: 'p-cathay',     amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  jetblue:       { label: 'JetBlue TrueBlue',      short: 'JetBlue',     color: 'var(--c-jetblue)',   bg: 'var(--bg-jetblue)',   rowCls: 'p-jetblue',    amexRatio: '1:1',  amexNote: null,              deltaFee: false },
-  qantas:        { label: 'Qantas Frequent Flyer', short: 'Qantas',      color: 'var(--c-qantas)',    bg: 'var(--bg-qantas)',    rowCls: 'p-qantas',     amexRatio: '1:1',  amexNote: null,              deltaFee: false },
+  // amexFactor = miles you get per 1 Amex pt transferred. Amex pts needed = award_miles / amexFactor
+  qatar:         { label: 'Qatar Airways',        short: 'Qatar',       color: 'var(--c-qatar)',     bg: 'var(--bg-qatar)',     rowCls: 'p-qatar',      amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
+  ba:            { label: 'British Airways',       short: 'BA',          color: 'var(--c-ba)',        bg: 'var(--bg-ba)',        rowCls: 'p-ba',         amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
+  flyingblue:    { label: 'Flying Blue',           short: 'FlyBlue',     color: 'var(--c-flyblue)',   bg: 'var(--bg-flyblue)',   rowCls: 'p-flyingblue', amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
+  aeroplan:      { label: 'Air Canada Aeroplan',   short: 'Aeroplan',    color: 'var(--c-aeroplan)',  bg: 'var(--bg-aeroplan)',  rowCls: 'p-aeroplan',   amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
+  ana:           { label: 'ANA Mileage Club',      short: 'ANA',         color: 'var(--c-ana)',       bg: 'var(--bg-ana)',       rowCls: 'p-ana',        amexRatio: '1:1',    amexFactor: 1,    amexNote: '2-3 días demora', deltaFee: false },
+  avianca:       { label: 'Avianca LifeMiles',     short: 'Avianca',     color: 'var(--c-avianca)',   bg: 'var(--bg-avianca)',   rowCls: 'p-avianca',    amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
+  singapore:     { label: 'Singapore KrisFlyer',   short: 'Singapore',   color: 'var(--c-singapore)', bg: 'var(--bg-singapore)', rowCls: 'p-singapore',  amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
+  virginatlantic:{ label: 'Virgin Atlantic',       short: 'Virgin',      color: 'var(--c-virgin)',    bg: 'var(--bg-virgin)',    rowCls: 'p-virgin',     amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
+  delta:         { label: 'Delta SkyMiles',        short: 'Delta',       color: 'var(--c-delta)',     bg: 'var(--bg-delta)',     rowCls: 'p-delta',      amexRatio: '1:1',    amexFactor: 1,    amexNote: '+ transfer fee',  deltaFee: true  },
+  american:      { label: 'American AAdvantage',   short: 'American',    color: '#e05050',            bg: 'rgba(192,57,43,.10)', rowCls: 'p-american',   amexRatio: null,     amexFactor: null, amexNote: null,              deltaFee: false },
+  alaska:        { label: 'Alaska Mileage Plan',   short: 'Alaska',      color: '#5090d0',            bg: 'rgba(0,100,164,.10)', rowCls: 'p-alaska',     amexRatio: null,     amexFactor: null, amexNote: null,              deltaFee: false },
+  united:        { label: 'United MileagePlus',    short: 'United',      color: '#6080b0',            bg: 'rgba(0,34,68,.12)',   rowCls: 'p-united',     amexRatio: null,     amexFactor: null, amexNote: null,              deltaFee: false },
+  etihad:        { label: 'Etihad Guest',           short: 'Etihad',      color: '#d4a030',            bg: 'rgba(189,139,19,.10)',rowCls: 'p-etihad',     amexRatio: null,     amexFactor: null, amexNote: null,              deltaFee: false },
+  turkish:       { label: 'Turkish Miles&Smiles',  short: 'Turkish',     color: '#e84040',            bg: 'rgba(227,10,23,.08)', rowCls: 'p-turkish',    amexRatio: null,     amexFactor: null, amexNote: null,              deltaFee: false },
+  emirates:      { label: 'Emirates Skywards',     short: 'Emirates',    color: 'var(--c-emirates)',  bg: 'var(--bg-emirates)',  rowCls: 'p-emirates',   amexRatio: '1:0.8',  amexFactor: 0.8,  amexNote: null,              deltaFee: false },
+  iberia:        { label: 'Iberia Plus',           short: 'Iberia',      color: 'var(--c-iberia)',    bg: 'var(--bg-iberia)',    rowCls: 'p-iberia',     amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
+  smiles:        { label: 'Gol Smiles',            short: 'Smiles',      color: '#ff8040',            bg: 'rgba(255,102,0,.10)', rowCls: 'p-smiles',     amexRatio: null,     amexFactor: null, amexNote: null,              deltaFee: false },
+  aeromexico:    { label: 'Aeroméxico Rewards',    short: 'Aeroméxico',  color: 'var(--c-aeromexico)',bg: 'var(--bg-aeromexico)',rowCls: 'p-aeromexico', amexRatio: '1:1.6',  amexFactor: 1.6,  amexNote: null,              deltaFee: false },
+  aerlingus:     { label: 'Aer Lingus AerClub',   short: 'AerClub',     color: 'var(--c-aerlingus)', bg: 'var(--bg-aerlingus)', rowCls: 'p-aerlingus',  amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
+  cathay:        { label: 'Cathay Pacific',        short: 'Cathay',      color: 'var(--c-cathay)',    bg: 'var(--bg-cathay)',    rowCls: 'p-cathay',     amexRatio: '1:0.8',  amexFactor: 0.8,  amexNote: null,              deltaFee: false },
+  jetblue:       { label: 'JetBlue TrueBlue',      short: 'JetBlue',     color: 'var(--c-jetblue)',   bg: 'var(--bg-jetblue)',   rowCls: 'p-jetblue',    amexRatio: '1:0.8',  amexFactor: 0.8,  amexNote: null,              deltaFee: false },
+  qantas:        { label: 'Qantas Frequent Flyer', short: 'Qantas',      color: 'var(--c-qantas)',    bg: 'var(--bg-qantas)',    rowCls: 'p-qantas',     amexRatio: '1:1',    amexFactor: 1,    amexNote: null,              deltaFee: false },
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2038,8 +2039,9 @@ function renderTable() {
 
     // Amex column
     let amexCell = '—';
-    if (miles > 0 && info.amexRatio) {
-      amexCell = miles.toLocaleString('en-US');
+    if (miles > 0 && info.amexFactor != null) {
+      const amexPtsNeeded = Math.ceil(miles / info.amexFactor);
+      amexCell = amexPtsNeeded.toLocaleString('en-US');
       if (info.amexNote) {
         amexCell += ` <span class="amex-note${info.deltaFee ? ' warn' : ''}">(${info.amexNote})</span>`;
       }
@@ -2179,7 +2181,7 @@ function exportCSV() {
     const info  = PROGRAMS[prog] || {};
     const miles = r.JMileageCostRaw || '';
     const taxes = r.JTotalTaxesRaw ? Math.ceil(r.JTotalTaxesRaw / 100) : '';
-    const amexPts = (miles && info.amexRatio) ? miles : '';
+    const amexPts = (miles && info.amexFactor != null) ? Math.ceil(miles / info.amexFactor) : '';
     return [
       r.Date || '',
       dest,
