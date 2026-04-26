@@ -846,61 +846,102 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
 
 <!-- ── Alerts ─────────────────────────────────────────────────── -->
 <div class="card" id="alerts-card">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-    <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:18px">🔔</span>
-      <span style="font-weight:700;font-size:14px;color:var(--accent)">Daily Alerts</span>
-      <span style="font-size:11px;color:var(--muted)">Checks every day at 8am · notifies via Telegram</span>
-    </div>
-    <button class="btn-add-alert" onclick="toggleAlertForm()">+ New Alert</button>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <span style="font-size:18px">🔔</span>
+    <span style="font-weight:700;font-size:14px;color:var(--accent)">Daily Alerts</span>
+    <span style="font-size:11px;color:var(--muted)">Checks every day at 8am · notifies via Telegram</span>
+    <button class="btn-add-alert" id="al-disconnect-btn" onclick="alDisconnect()" style="display:none;margin-left:auto;background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#f87171">Disconnect</button>
   </div>
 
-  <!-- New alert form -->
-  <div id="alert-form" style="display:none;background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:16px;margin-bottom:14px">
-    <div style="display:grid;grid-template-columns:120px 1fr 1fr;gap:12px;margin-bottom:12px">
-      <div class="field">
-        <label>Origin</label>
-        <input type="text" id="al-origin" value="EZE" maxlength="3" style="text-transform:uppercase;font-weight:700;letter-spacing:2px">
-      </div>
-      <div class="field">
-        <label>Destinations <span style="color:var(--muted);font-weight:400">— type ASIA to expand</span></label>
-        <input type="text" id="al-dests" placeholder="e.g. ASIA or NRT,HND,KIX" style="font-size:12px" oninput="alExpandKeywords(this,'dest')">
-      </div>
-      <div class="field">
-        <label>Date Range</label>
-        <div class="drp-trigger" id="al-drp-trigger" onclick="alDrpOpen()">
-          <span class="drp-icon">📅</span>
-          <span id="al-drp-label">Select dates</span>
+  <!-- Step 1: connect Telegram -->
+  <div id="al-setup">
+    <div id="al-step1" style="text-align:center;padding:24px 16px">
+      <div style="font-size:32px;margin-bottom:10px">✈️</div>
+      <div style="font-weight:600;font-size:15px;margin-bottom:6px">Connect your Telegram to receive alerts</div>
+      <div style="color:var(--muted);font-size:12.5px;margin-bottom:20px">Your alerts are tied to your Telegram account. Each user has their own.</div>
+      <button class="drp-done" style="font-size:14px;padding:10px 28px" onclick="alStartAuth()">Connect Telegram</button>
+    </div>
+
+    <div id="al-step2" style="display:none;padding:16px">
+      <div style="display:flex;gap:20px;align-items:flex-start">
+        <div style="background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:16px 20px;flex:1">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Step 1</div>
+          <div style="margin-bottom:8px">Open Telegram and message <strong style="color:var(--accent)">@CanjesMillasBot</strong></div>
+          <div style="font-size:12px;color:var(--muted)">Or click: <a id="al-tg-link" href="https://t.me/CanjesMillasBot" target="_blank" style="color:var(--accent)">t.me/CanjesMillasBot</a></div>
         </div>
-        <input type="hidden" id="al-start">
-        <input type="hidden" id="al-end">
+        <div style="background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:16px 20px;flex:1">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Step 2</div>
+          <div style="margin-bottom:8px">Send this code to the bot:</div>
+          <div id="al-code-display" style="font-size:28px;font-weight:900;letter-spacing:6px;color:var(--accent);font-family:monospace">——————</div>
+        </div>
+        <div style="background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:16px 20px;flex:1">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Step 3</div>
+          <div id="al-poll-status" style="color:var(--muted);font-size:13px">Waiting for message…</div>
+          <div id="al-poll-timer" style="font-size:11px;color:var(--muted2);margin-top:6px"></div>
+        </div>
       </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-      <div class="field">
-        <label>Max Miles</label>
-        <input type="number" id="al-miles" placeholder="e.g. 150000" step="5000">
+      <div style="text-align:center;margin-top:14px">
+        <button id="al-retry-btn" class="drp-clear" onclick="alStartAuth()" style="display:none">↺ Generate new code</button>
       </div>
-      <div class="field">
-        <label>Cabin</label>
-        <select id="al-cabin" style="background:#060b18;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 13px;font-size:13px;width:100%;outline:none;font-family:inherit">
-          <option value="business">Business (J)</option>
-          <option value="economy">Economy (Y)</option>
-          <option value="premium">Premium Econ (W)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Programs <span style="color:var(--muted);font-weight:400">— type AMEX to expand</span></label>
-        <input type="text" id="al-progs" placeholder="AMEX or blank = current selection" style="font-size:12px" oninput="alExpandKeywords(this,'prog')">
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end">
-      <button class="drp-clear" onclick="toggleAlertForm()">Cancel</button>
-      <button class="drp-done" onclick="saveAlert()">Save Alert</button>
     </div>
   </div>
 
-  <!-- Alert date picker overlay (separate instance) -->
+  <!-- Alerts UI (shown after auth) -->
+  <div id="al-authenticated" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div id="al-user-badge" style="font-size:12px;color:var(--muted)"></div>
+      <button class="btn-add-alert" onclick="toggleAlertForm()">+ New Alert</button>
+    </div>
+
+    <!-- New alert form -->
+    <div id="alert-form" style="display:none;background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:16px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:120px 1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="field">
+          <label>Origin</label>
+          <input type="text" id="al-origin" value="EZE" maxlength="3" style="text-transform:uppercase;font-weight:700;letter-spacing:2px">
+        </div>
+        <div class="field">
+          <label>Destinations <span style="color:var(--muted);font-weight:400">— type ASIA to expand</span></label>
+          <input type="text" id="al-dests" placeholder="e.g. ASIA or NRT,HND,KIX" style="font-size:12px" oninput="alExpandKeywords(this,'dest')">
+        </div>
+        <div class="field">
+          <label>Date Range</label>
+          <div class="drp-trigger" id="al-drp-trigger" onclick="alDrpOpen()">
+            <span class="drp-icon">📅</span>
+            <span id="al-drp-label">Select dates</span>
+          </div>
+          <input type="hidden" id="al-start">
+          <input type="hidden" id="al-end">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+        <div class="field">
+          <label>Max Miles</label>
+          <input type="number" id="al-miles" placeholder="e.g. 150000" step="5000">
+        </div>
+        <div class="field">
+          <label>Cabin</label>
+          <select id="al-cabin" style="background:#060b18;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 13px;font-size:13px;width:100%;outline:none;font-family:inherit">
+            <option value="business">Business (J)</option>
+            <option value="economy">Economy (Y)</option>
+            <option value="premium">Premium Econ (W)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Programs <span style="color:var(--muted);font-weight:400">— type AMEX to expand</span></label>
+          <input type="text" id="al-progs" placeholder="AMEX or blank = current selection" style="font-size:12px" oninput="alExpandKeywords(this,'prog')">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="drp-clear" onclick="toggleAlertForm()">Cancel</button>
+        <button class="drp-done" onclick="saveAlert()">Save Alert</button>
+      </div>
+    </div>
+
+    <div id="alerts-list"><div style="color:var(--muted);font-size:13px">No alerts yet.</div></div>
+  </div>
+
+  <!-- Alert date picker overlay -->
   <div class="drp-overlay" id="al-drp-overlay" onclick="alDrpOverlayClick(event)">
     <div class="drp-popup">
       <div class="drp-header">
@@ -915,9 +956,6 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
       </div>
     </div>
   </div>
-
-  <!-- Alert list -->
-  <div id="alerts-list"><div style="color:var(--muted);font-size:13px">No alerts yet.</div></div>
 </div>
 
 <!-- ── Summary bar ────────────────────────────────────────────── -->
@@ -2183,9 +2221,92 @@ function exportCSV() {
 ═══════════════════════════════════════════════════════════════ */
 const WORKER = 'https://award-proxy.facud7.workers.dev';
 
+// ── Auth state ────────────────────────────────────────────────────
+let alChatId   = null;
+let alUsername = null;
+let alPollTimer = null;
+let alPollCode  = null;
+
+function alLoadSession() {
+  alChatId   = localStorage.getItem('al_chatId');
+  alUsername = localStorage.getItem('al_username');
+  if (alChatId) {
+    alShowAuthenticated();
+    loadAlerts();
+  }
+}
+
+function alShowAuthenticated() {
+  document.getElementById('al-setup').style.display = 'none';
+  document.getElementById('al-authenticated').style.display = 'block';
+  document.getElementById('al-disconnect-btn').style.display = 'block';
+  document.getElementById('al-user-badge').textContent = `Connected as @${alUsername}`;
+}
+
+function alDisconnect() {
+  if (!confirm('Disconnect your Telegram? Your alerts will remain stored but you won\'t receive new notifications until you reconnect.')) return;
+  localStorage.removeItem('al_chatId');
+  localStorage.removeItem('al_username');
+  alChatId = null; alUsername = null;
+  document.getElementById('al-setup').style.display = 'block';
+  document.getElementById('al-step1').style.display = 'block';
+  document.getElementById('al-step2').style.display = 'none';
+  document.getElementById('al-authenticated').style.display = 'none';
+  document.getElementById('al-disconnect-btn').style.display = 'none';
+}
+
+async function alStartAuth() {
+  document.getElementById('al-step1').style.display = 'none';
+  document.getElementById('al-step2').style.display = 'block';
+  document.getElementById('al-retry-btn').style.display = 'none';
+  document.getElementById('al-poll-status').textContent = 'Waiting for message…';
+  document.getElementById('al-poll-status').style.color = 'var(--muted)';
+
+  // Get a fresh code
+  const resp = await fetch(`${WORKER}/auth/code`, { method: 'POST' });
+  const { code } = await resp.json();
+  alPollCode = code;
+  document.getElementById('al-code-display').textContent = code;
+
+  // Poll with 2-min timeout
+  let elapsed = 0;
+  const TIMEOUT = 120;
+  clearInterval(alPollTimer);
+  alPollTimer = setInterval(async () => {
+    elapsed += 2;
+    const remaining = TIMEOUT - elapsed;
+    document.getElementById('al-poll-timer').textContent = `Code expires in ${remaining}s`;
+
+    if (remaining <= 0) {
+      clearInterval(alPollTimer);
+      document.getElementById('al-poll-status').textContent = 'Code expired.';
+      document.getElementById('al-poll-timer').textContent = '';
+      document.getElementById('al-retry-btn').style.display = 'inline-block';
+      return;
+    }
+
+    try {
+      const r = await fetch(`${WORKER}/auth/poll?code=${alPollCode}`);
+      const data = await r.json();
+      if (data.status === 'verified') {
+        clearInterval(alPollTimer);
+        alChatId   = data.chatId;
+        alUsername = data.username;
+        localStorage.setItem('al_chatId',   alChatId);
+        localStorage.setItem('al_username', alUsername);
+        document.getElementById('al-poll-status').textContent = `✅ Verified as @${alUsername}!`;
+        document.getElementById('al-poll-status').style.color = 'var(--green)';
+        document.getElementById('al-poll-timer').textContent = '';
+        setTimeout(() => { alShowAuthenticated(); loadAlerts(); }, 800);
+      }
+    } catch (e) { /* ignore network errors, keep polling */ }
+  }, 2000);
+}
+
 async function loadAlerts() {
+  if (!alChatId) return;
   try {
-    const resp = await fetch(`${WORKER}/alerts`);
+    const resp = await fetch(`${WORKER}/alerts?chatId=${alChatId}`);
     const alerts = await resp.json();
     renderAlerts(alerts);
   } catch (e) { /* silent fail */ }
@@ -2345,7 +2466,7 @@ async function saveAlert() {
   if (!start || !end)           { alert('Enter start and end date.'); return; }
   if (!miles || miles < 1000)   { alert('Enter a valid max miles value.'); return; }
 
-  const alert_obj = { origin, destinations: dests, startDate: start, endDate: end, maxMiles: miles, cabin, programs };
+  const alert_obj = { origin, destinations: dests, startDate: start, endDate: end, maxMiles: miles, cabin, programs, chatId: alChatId };
 
   try {
     await fetch(`${WORKER}/alerts`, {
@@ -2362,12 +2483,12 @@ async function saveAlert() {
 
 async function deleteAlert(id) {
   if (!confirm('Remove this alert?')) return;
-  await fetch(`${WORKER}/alerts?id=${id}`, { method: 'DELETE' });
+  await fetch(`${WORKER}/alerts?id=${id}&chatId=${alChatId}`, { method: 'DELETE' });
   loadAlerts();
 }
 
-// Load alerts on startup
-document.addEventListener('DOMContentLoaded', () => { loadAlerts(); });
+// Init
+document.addEventListener('DOMContentLoaded', () => { alLoadSession(); });
 </script>
 </body>
 </html>
