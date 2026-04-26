@@ -889,11 +889,11 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
 ═══════════════════════════════════════════════════════════════ */
 // Set REMOTE_PROXY to your Cloudflare Worker URL when hosting online.
 // Leave empty to auto-detect: uses localhost when running locally, remote when hosted.
-const REMOTE_PROXY = '';  // e.g. 'https://award-proxy.yourname.workers.dev/proxy/search'
+const REMOTE_PROXY = 'https://award-proxy.facud7.workers.dev/proxy/search';
 const PROXY = REMOTE_PROXY ||
   (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/proxy/search'
-    : 'https://award-proxy.yourname.workers.dev/proxy/search');
+    : 'https://award-proxy.facud7.workers.dev/proxy/search');
 
 const AIRPORTS = {
   PVG: 'Shanghai', HKG: 'Hong Kong',
