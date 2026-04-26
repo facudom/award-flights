@@ -873,6 +873,7 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
           <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Step 3</div>
           <div id="al-poll-status" style="color:var(--muted);font-size:13px">Waiting for message…</div>
           <div id="al-poll-timer" style="font-size:11px;color:var(--muted2);margin-top:6px"></div>
+          <button id="al-check-btn" class="drp-done" onclick="alForceCheck()" style="display:none;margin-top:10px;font-size:12px;padding:6px 14px">✓ I sent the code</button>
         </div>
       </div>
       <div style="text-align:center;margin-top:14px">
@@ -2254,6 +2255,7 @@ async function alStartAuth() {
   document.getElementById('al-step1').style.display = 'none';
   document.getElementById('al-step2').style.display = 'block';
   document.getElementById('al-retry-btn').style.display = 'none';
+  document.getElementById('al-check-btn').style.display = 'none';
   document.getElementById('al-poll-status').textContent = 'Waiting for message…';
   document.getElementById('al-poll-status').style.color = 'var(--muted)';
 
@@ -2262,6 +2264,12 @@ async function alStartAuth() {
   const { code } = await resp.json();
   alPollCode = code;
   document.getElementById('al-code-display').textContent = code;
+
+  // Show "I sent the code" button after 5s
+  setTimeout(() => {
+    if (alPollCode === code) // still on same code
+      document.getElementById('al-check-btn').style.display = 'inline-block';
+  }, 5000);
 
   // Poll with 2-min timeout
   let elapsed = 0;
@@ -2276,26 +2284,56 @@ async function alStartAuth() {
       clearInterval(alPollTimer);
       document.getElementById('al-poll-status').textContent = 'Code expired.';
       document.getElementById('al-poll-timer').textContent = '';
+      document.getElementById('al-check-btn').style.display = 'none';
       document.getElementById('al-retry-btn').style.display = 'inline-block';
       return;
     }
 
-    try {
-      const r = await fetch(`${WORKER}/auth/poll?code=${alPollCode}`);
-      const data = await r.json();
-      if (data.status === 'verified') {
-        clearInterval(alPollTimer);
-        alChatId   = data.chatId;
-        alUsername = data.username;
-        localStorage.setItem('al_chatId',   alChatId);
-        localStorage.setItem('al_username', alUsername);
-        document.getElementById('al-poll-status').textContent = `✅ Verified as @${alUsername}!`;
-        document.getElementById('al-poll-status').style.color = 'var(--green)';
-        document.getElementById('al-poll-timer').textContent = '';
-        setTimeout(() => { alShowAuthenticated(); loadAlerts(); }, 800);
-      }
-    } catch (e) { /* ignore network errors, keep polling */ }
+    await alCheckVerified();
   }, 2000);
+}
+
+async function alCheckVerified() {
+  try {
+    const r = await fetch(`${WORKER}/auth/poll?code=${alPollCode}`);
+    const data = await r.json();
+    if (data.status === 'verified') {
+      clearInterval(alPollTimer);
+      alChatId   = data.chatId;
+      alUsername = data.username;
+      localStorage.setItem('al_chatId',   alChatId);
+      localStorage.setItem('al_username', alUsername);
+      document.getElementById('al-poll-status').textContent = `✅ Verified as @${alUsername}!`;
+      document.getElementById('al-poll-status').style.color = 'var(--green)';
+      document.getElementById('al-poll-timer').textContent = '';
+      document.getElementById('al-check-btn').style.display = 'none';
+      setTimeout(() => { alShowAuthenticated(); loadAlerts(); }, 800);
+      return true;
+    }
+  } catch (e) { /* ignore */ }
+  return false;
+}
+
+async function alForceCheck() {
+  const btn = document.getElementById('al-check-btn');
+  btn.textContent = 'Checking…';
+  btn.disabled = true;
+  const ok = await alCheckVerified();
+  if (!ok) {
+    // KV may still be propagating — retry a few more times
+    let tries = 0;
+    const retry = setInterval(async () => {
+      tries++;
+      const ok2 = await alCheckVerified();
+      if (ok2 || tries >= 5) {
+        clearInterval(retry);
+        if (!ok2) {
+          btn.textContent = 'Not verified yet — try again';
+          btn.disabled = false;
+        }
+      }
+    }, 3000);
+  }
 }
 
 async function loadAlerts() {
