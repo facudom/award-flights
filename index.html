@@ -425,6 +425,32 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(.5); cursor
 }
 .btn-csv:hover { background: rgba(34,197,94,.18); border-color: rgba(34,197,94,.5); }
 
+.btn-add-alert {
+  background: rgba(74,142,240,.12); border: 1px solid rgba(74,142,240,.35);
+  color: var(--accent); border-radius: 7px;
+  padding: 7px 14px; font-size: 12.5px; font-weight: 700;
+  cursor: pointer; transition: background .15s;
+}
+.btn-add-alert:hover { background: rgba(74,142,240,.22); }
+
+.alert-pill {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 9px; padding: 10px 14px; margin-bottom: 8px;
+  font-size: 12.5px;
+}
+.alert-pill-info { flex: 1; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.alert-tag {
+  background: rgba(74,142,240,.1); border: 1px solid rgba(74,142,240,.2);
+  border-radius: 5px; padding: 2px 8px; font-size: 11px; color: var(--accent);
+}
+.alert-delete {
+  background: none; border: 1px solid rgba(239,68,68,.3);
+  color: #f87171; border-radius: 6px; padding: 4px 10px;
+  font-size: 11px; cursor: pointer; transition: background .12s;
+}
+.alert-delete:hover { background: rgba(239,68,68,.15); }
+
 /* ── Loading ─────────────────────────────────────────────────── */
 .loading { display: none; align-items: center; gap: 9px; color: #6090cc; font-size: 13px; }
 .spinner {
@@ -815,9 +841,67 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
 
 </div><!-- /card -->
 
-<!-- ── Alerts ─────────────────────────────────────────────────── -->
 <div class="error-box"   id="error-box"></div>
 <div class="warning-box" id="warning-box"></div>
+
+<!-- ── Alerts ─────────────────────────────────────────────────── -->
+<div class="card" id="alerts-card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:18px">🔔</span>
+      <span style="font-weight:700;font-size:14px;color:var(--accent)">Daily Alerts</span>
+      <span style="font-size:11px;color:var(--muted)">Checks every day at 8am · notifies via Telegram</span>
+    </div>
+    <button class="btn-add-alert" onclick="toggleAlertForm()">+ New Alert</button>
+  </div>
+
+  <!-- New alert form -->
+  <div id="alert-form" style="display:none;background:var(--panel2);border:1px solid var(--border2);border-radius:10px;padding:16px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="field">
+        <label>Origin</label>
+        <input type="text" id="al-origin" value="EZE" maxlength="3" style="text-transform:uppercase;font-weight:700;letter-spacing:2px">
+      </div>
+      <div class="field">
+        <label>Destinations</label>
+        <input type="text" id="al-dests" placeholder="e.g. NRT,HND,KIX" style="font-size:12px">
+      </div>
+      <div class="field">
+        <label>Start Date</label>
+        <input type="date" id="al-start">
+      </div>
+      <div class="field">
+        <label>End Date</label>
+        <input type="date" id="al-end">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+      <div class="field">
+        <label>Max Miles</label>
+        <input type="number" id="al-miles" placeholder="e.g. 150000" step="5000">
+      </div>
+      <div class="field">
+        <label>Cabin</label>
+        <select id="al-cabin" style="background:#060b18;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 13px;font-size:13px;width:100%;outline:none;font-family:inherit">
+          <option value="business">Business (J)</option>
+          <option value="economy">Economy (Y)</option>
+          <option value="premium">Premium Econ (W)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Programs <span style="color:var(--muted);font-weight:400">(blank = all selected)</span></label>
+        <input type="text" id="al-progs" placeholder="leave blank to use current selection" style="font-size:11px">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="drp-clear" onclick="toggleAlertForm()">Cancel</button>
+      <button class="drp-done" onclick="saveAlert()">Save Alert</button>
+    </div>
+  </div>
+
+  <!-- Alert list -->
+  <div id="alerts-list"><div style="color:var(--muted);font-size:13px">No alerts yet.</div></div>
+</div>
 
 <!-- ── Summary bar ────────────────────────────────────────────── -->
 <div class="summary-bar" id="summary-bar">
@@ -2076,6 +2160,96 @@ function exportCSV() {
   a.click();
   document.body.removeChild(a);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Alerts
+═══════════════════════════════════════════════════════════════ */
+const WORKER = 'https://award-proxy.facud7.workers.dev';
+
+async function loadAlerts() {
+  try {
+    const resp = await fetch(`${WORKER}/alerts`);
+    const alerts = await resp.json();
+    renderAlerts(alerts);
+  } catch (e) { /* silent fail */ }
+}
+
+function renderAlerts(alerts) {
+  const el = document.getElementById('alerts-list');
+  if (!alerts.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px">No alerts yet.</div>';
+    return;
+  }
+  el.innerHTML = alerts.map(a => `
+    <div class="alert-pill">
+      <div class="alert-pill-info">
+        <span class="alert-tag">📍 ${a.origin} → ${a.destinations.join(', ')}</span>
+        <span class="alert-tag">📅 ${a.startDate} → ${a.endDate}</span>
+        <span class="alert-tag">✈️ ${a.cabin}</span>
+        <span class="alert-tag">🎯 under ${Number(a.maxMiles).toLocaleString('en-US')} mi</span>
+        ${a.programs.length ? `<span class="alert-tag">💳 ${a.programs.join(', ')}</span>` : '<span class="alert-tag">💳 all programs</span>'}
+      </div>
+      <button class="alert-delete" onclick="deleteAlert('${a.id}')">✕ Remove</button>
+    </div>
+  `).join('');
+}
+
+function toggleAlertForm() {
+  const form = document.getElementById('alert-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+
+  // Pre-fill from current search state
+  if (form.style.display === 'block') {
+    const origin = document.getElementById('origin-search').value.trim().toUpperCase().slice(0,3) || 'EZE';
+    document.getElementById('al-origin').value = origin;
+    const start = document.getElementById('start-date').value;
+    const end   = document.getElementById('end-date').value;
+    if (start) document.getElementById('al-start').value = start;
+    if (end)   document.getElementById('al-end').value   = end;
+    // Pre-fill destinations from checked
+    const dests = checkedDests();
+    if (dests.length) document.getElementById('al-dests').value = dests.join(',');
+  }
+}
+
+async function saveAlert() {
+  const origin = document.getElementById('al-origin').value.trim().toUpperCase().slice(0,3);
+  const dests  = document.getElementById('al-dests').value.split(',').map(d => d.trim().toUpperCase()).filter(Boolean);
+  const start  = document.getElementById('al-start').value;
+  const end    = document.getElementById('al-end').value;
+  const miles  = parseInt(document.getElementById('al-miles').value, 10);
+  const cabin  = document.getElementById('al-cabin').value;
+  const progsRaw = document.getElementById('al-progs').value.trim();
+  const programs = progsRaw ? progsRaw.split(',').map(p => p.trim().toLowerCase()).filter(Boolean)
+                            : [...checkedPrograms()];
+
+  if (!origin || !dests.length) { alert('Enter origin and at least one destination.'); return; }
+  if (!start || !end)           { alert('Enter start and end date.'); return; }
+  if (!miles || miles < 1000)   { alert('Enter a valid max miles value.'); return; }
+
+  const alert_obj = { origin, destinations: dests, startDate: start, endDate: end, maxMiles: miles, cabin, programs };
+
+  try {
+    await fetch(`${WORKER}/alerts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(alert_obj),
+    });
+    toggleAlertForm();
+    loadAlerts();
+  } catch (e) {
+    alert('Failed to save alert: ' + e.message);
+  }
+}
+
+async function deleteAlert(id) {
+  if (!confirm('Remove this alert?')) return;
+  await fetch(`${WORKER}/alerts?id=${id}`, { method: 'DELETE' });
+  loadAlerts();
+}
+
+// Load alerts on startup
+document.addEventListener('DOMContentLoaded', () => { loadAlerts(); });
 </script>
 </body>
 </html>

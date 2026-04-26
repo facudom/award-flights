@@ -1,0 +1,10 @@
+name = "award-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "ALERTS_KV"
+id = "76988a5112514796bd7656d470c9031d"
+
+[triggers]
+crons = ["0 11 * * *"]
