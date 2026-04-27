@@ -484,6 +484,83 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(.5); cursor
   color: #fdba74; font-size: 13px; margin-bottom: 14px;
 }
 
+/* ── Trip type toggle ────────────────────────────────────────── */
+.trip-toggle { display: flex; gap: 6px; margin-bottom: 10px; }
+.trip-btn {
+  padding: 5px 16px; border-radius: 20px; border: 1px solid var(--border2);
+  background: transparent; color: var(--muted); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .15s; font-family: inherit;
+}
+.trip-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+#ret-drp-trigger-wrap { display: none; margin-top: 8px; }
+
+/* ── Filter bar ───────────────────────────────────────────────── */
+.filter-bar {
+  display: none; align-items: center; gap: 16px; flex-wrap: wrap;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 16px; margin-bottom: 12px;
+}
+.filter-bar-sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+.filter-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.filter-toggle {
+  width: 36px; height: 20px; border-radius: 10px; border: none;
+  background: var(--border2); cursor: pointer; position: relative;
+  transition: background .2s; flex-shrink: 0; padding: 0;
+}
+.filter-toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%; background: #fff;
+  transition: transform .2s;
+}
+.filter-toggle.on { background: var(--accent); }
+.filter-toggle.on::after { transform: translateX(16px); }
+.filter-miles-input {
+  width: 100px; padding: 4px 10px !important; font-size: 12px !important;
+  border-radius: 7px !important; height: 30px !important;
+}
+.filter-count { margin-left: auto; font-size: 12px; color: var(--muted); font-style: italic; }
+
+/* ── View toggle ──────────────────────────────────────────────── */
+.view-btns { display: flex; gap: 6px; }
+.view-btn {
+  padding: 4px 14px; border-radius: 7px; border: 1px solid var(--border2);
+  background: transparent; color: var(--muted); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .15s; font-family: inherit;
+}
+.view-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── Heatmap ──────────────────────────────────────────────────── */
+#heatmap-wrap { display: none; }
+.hm-dest { margin-bottom: 28px; }
+.hm-dest-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+.hm-months { display: flex; gap: 20px; flex-wrap: wrap; }
+.hm-month-title { font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; margin-bottom: 6px; }
+.hm-grid { display: grid; grid-template-columns: repeat(7, 28px); gap: 2px; }
+.hm-dow { text-align: center; font-size: 9px; color: var(--muted2); font-weight: 700; padding-bottom: 2px; }
+.hm-cell {
+  width: 28px; height: 28px; border-radius: 4px; display: flex;
+  align-items: center; justify-content: center; font-size: 9px;
+  font-weight: 700; cursor: default; position: relative; transition: outline .1s;
+}
+.hm-cell.hm-empty { background: transparent; }
+.hm-cell.hm-none  { background: rgba(255,255,255,.04); color: var(--muted2); }
+.hm-cell.hm-great { background: rgba(34,197,94,.35); color: #4ade80; }
+.hm-cell.hm-good  { background: rgba(74,197,94,.2);  color: #86efac; }
+.hm-cell.hm-ok    { background: rgba(250,204,21,.2);  color: #fbbf24; }
+.hm-cell.hm-pricey{ background: rgba(249,115,22,.2);  color: #fb923c; }
+.hm-cell.hm-high  { background: rgba(239,68,68,.18);  color: #f87171; }
+.hm-cell:not(.hm-empty):not(.hm-none):hover { outline: 2px solid var(--accent); z-index: 2; }
+.hm-legend { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.hm-swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+/* ── Round-trip sections ──────────────────────────────────────── */
+.rt-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.1px;
+  color: var(--accent); margin: 0 0 8px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+#return-results-section { display: none; margin-top: 24px; }
+
 /* ── Summary bar ─────────────────────────────────────────────── */
 .summary-bar {
   display: none; flex-wrap: wrap; gap: 0;
@@ -639,16 +716,31 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
     </div>
 
     <div class="dates-stack">
+      <div class="trip-toggle">
+        <button class="trip-btn active" id="trip-ow" onclick="setTripType('ow')">One Way</button>
+        <button class="trip-btn"        id="trip-rt" onclick="setTripType('rt')">Round Trip</button>
+      </div>
       <div class="field">
-        <label>Date Range</label>
-        <div class="drp-trigger" id="drp-trigger" onclick="drpOpen()">
+        <label id="drp-main-label">Outbound Dates</label>
+        <div class="drp-trigger" id="drp-trigger" onclick="drpOpenMode('out')">
           <span class="drp-icon">📅</span>
           <span id="drp-label">Select dates</span>
+        </div>
+      </div>
+      <div id="ret-drp-trigger-wrap">
+        <div class="field">
+          <label>Return Dates</label>
+          <div class="drp-trigger" id="ret-drp-trigger" onclick="drpOpenMode('ret')">
+            <span class="drp-icon">📅</span>
+            <span id="ret-drp-label">Select dates</span>
+          </div>
         </div>
       </div>
       <!-- hidden inputs consumed by startSearch -->
       <input type="hidden" id="start-date">
       <input type="hidden" id="end-date">
+      <input type="hidden" id="ret-start-date">
+      <input type="hidden" id="ret-end-date">
     </div>
 
     <!-- Date range picker overlay -->
@@ -990,6 +1082,22 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
   </div>
 </div>
 
+<!-- ── Filter bar ─────────────────────────────────────────────── -->
+<div class="filter-bar" id="filter-bar">
+  <span class="filter-label">Filters</span>
+  <div class="filter-bar-sep"></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="filter-toggle" id="filter-direct-btn" onclick="toggleDirectFilter()" title="Direct flights only"></button>
+    <span class="filter-label" style="text-transform:none;letter-spacing:0;font-size:12px">Direct only</span>
+  </div>
+  <div class="filter-bar-sep"></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="filter-label" style="text-transform:none;letter-spacing:0;font-size:12px;white-space:nowrap">Max miles</span>
+    <input class="filter-miles-input" type="number" id="filter-miles" placeholder="e.g. 80000" min="0" step="5000" oninput="applyFiltersAndRender()">
+  </div>
+  <span class="filter-count" id="filter-count"></span>
+</div>
+
 <!-- ── Results ────────────────────────────────────────────────── -->
 <div id="debug-panel" style="display:none;margin-bottom:12px;padding:12px 16px;background:#1a0a0a;border:1px solid #5a2020;border-radius:10px;font-size:12px;color:#f0a0a0;line-height:1.8">
   <strong style="color:#ff8080">Debug Info</strong><br>
@@ -998,27 +1106,77 @@ tr.cheap td.td-date::before { content: '★ '; color: var(--green); }
 <div class="results-section" id="results-section">
   <div class="results-header">
     <div class="results-title" id="results-title">Results</div>
-    <button class="btn-csv" onclick="exportCSV()">⬇ Export CSV</button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="view-btns">
+        <button class="view-btn active" id="vbtn-table"   onclick="setView('table')">Table</button>
+        <button class="view-btn"        id="vbtn-heatmap" onclick="setView('heatmap')">Heatmap</button>
+      </div>
+      <button class="btn-csv" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
   </div>
+
+  <!-- Table view -->
+  <div id="table-wrap-out">
+    <div class="table-wrap">
+      <table id="results-table">
+        <thead>
+          <tr>
+            <th onclick="sortBy('date')">Date</th>
+            <th onclick="sortBy('dest')">Destination</th>
+            <th onclick="sortBy('prog')">Program</th>
+            <th onclick="sortBy('yecon')">Economy (Y)</th>
+            <th onclick="sortBy('wpremeco')">Prem. Econ (W)</th>
+            <th onclick="sortBy('miles')">Business (J)</th>
+            <th onclick="sortBy('amex')">Amex Pts</th>
+            <th onclick="sortBy('seats')">Seats (J)</th>
+            <th onclick="sortBy('direct')">Routing</th>
+            <th>Airline(s)</th>
+            <th onclick="sortBy('taxes')">Taxes (USD)</th>
+            <th>Book</th>
+          </tr>
+        </thead>
+        <tbody id="results-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Heatmap view -->
+  <div id="heatmap-wrap">
+    <div class="hm-legend">
+      <span>Miles per day (cheapest available):</span>
+      <span><span class="hm-swatch" style="background:rgba(34,197,94,.35)"></span> &lt;50k</span>
+      <span><span class="hm-swatch" style="background:rgba(74,197,94,.2)"></span> 50–80k</span>
+      <span><span class="hm-swatch" style="background:rgba(250,204,21,.2)"></span> 80–120k</span>
+      <span><span class="hm-swatch" style="background:rgba(249,115,22,.2)"></span> 120–180k</span>
+      <span><span class="hm-swatch" style="background:rgba(239,68,68,.18)"></span> &gt;180k</span>
+      <span><span class="hm-swatch" style="background:rgba(255,255,255,.04)"></span> None</span>
+    </div>
+    <div id="heatmap-content"></div>
+  </div>
+</div>
+
+<!-- Return results (round-trip only) -->
+<div id="return-results-section">
+  <p class="rt-section-label">↩ Return Flights</p>
   <div class="table-wrap">
-    <table id="results-table">
+    <table id="return-table">
       <thead>
         <tr>
-          <th onclick="sortBy('date')">Date</th>
-          <th onclick="sortBy('dest')">Destination</th>
-          <th onclick="sortBy('prog')">Program</th>
-          <th onclick="sortBy('yecon')">Economy (Y)</th>
-          <th onclick="sortBy('wpremeco')">Prem. Econ (W)</th>
-          <th onclick="sortBy('miles')">Business (J)</th>
-          <th onclick="sortBy('amex')">Amex Pts (J)</th>
-          <th onclick="sortBy('seats')">Seats (J)</th>
-          <th onclick="sortBy('direct')">Routing</th>
+          <th onclick="sortRetBy('date')">Date</th>
+          <th>From</th>
+          <th onclick="sortRetBy('prog')">Program</th>
+          <th onclick="sortRetBy('yecon')">Economy (Y)</th>
+          <th onclick="sortRetBy('wpremeco')">Prem. Econ (W)</th>
+          <th onclick="sortRetBy('miles')">Business (J)</th>
+          <th onclick="sortRetBy('amex')">Amex Pts</th>
+          <th onclick="sortRetBy('seats')">Seats (J)</th>
+          <th onclick="sortRetBy('direct')">Routing</th>
           <th>Airline(s)</th>
-          <th onclick="sortBy('taxes')">Taxes (USD)</th>
+          <th onclick="sortRetBy('taxes')">Taxes (USD)</th>
           <th>Book</th>
         </tr>
       </thead>
-      <tbody id="results-tbody"></tbody>
+      <tbody id="return-tbody"></tbody>
     </table>
   </div>
 </div>
@@ -1717,10 +1875,9 @@ async function fetchPage(params, apiKey, cursor) {
   return body;
 }
 
-async function fetchDest(dest, start, end, apiKey, onStatus) {
-  // No `sources` filter — get ALL programs from API, filter client-side
+async function fetchDest(dest, start, end, apiKey, onStatus, origin) {
   const params = {
-    origin_airport:      getOrigin(),
+    origin_airport:      origin || getOrigin(),
     destination_airport: dest,
     start_date:          start,
     end_date:            end,
@@ -1743,8 +1900,16 @@ async function fetchDest(dest, start, end, apiKey, onStatus) {
    Date Range Picker
 ═══════════════════════════════════════════════════════════════ */
 (function() {
-  let drpViewYear, drpViewMonth;  // left calendar month
-  let drpStart = null, drpEnd = null; // Date objects (local midnight)
+  let drpViewYear, drpViewMonth;
+  let drpStart = null, drpEnd = null;
+  let drpMode = 'out'; // 'out' | 'ret'
+
+  function hintId()    { return 'drp-hint'; }
+  function doneId()    { return 'drp-done'; }
+  function trigId()    { return drpMode === 'out' ? 'drp-trigger' : 'ret-drp-trigger'; }
+  function labelId()   { return drpMode === 'out' ? 'drp-label'   : 'ret-drp-label'; }
+  function startId()   { return drpMode === 'out' ? 'start-date'  : 'ret-start-date'; }
+  function endId()     { return drpMode === 'out' ? 'end-date'    : 'ret-end-date'; }
 
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
@@ -1820,40 +1985,49 @@ async function fetchDest(dest, start, end, apiKey, onStatus) {
     drpEnd = null;
   }
 
+  // per-mode state
+  const state = {
+    out: { start: null, end: null },
+    ret: { start: null, end: null },
+  };
+
   function drpPick(d) {
-    if (!drpStart || drpEnd || d < drpStart) {
-      // start over
-      drpStart = d; drpEnd = null;
-      document.getElementById('drp-hint').textContent = 'Now click an end date';
-      document.getElementById('drp-done').disabled = true;
-    } else if (d.getTime() === drpStart.getTime()) {
-      // same day = reset
-      drpStart = null; drpEnd = null;
-      document.getElementById('drp-hint').textContent = 'Click a start date';
-      document.getElementById('drp-done').disabled = true;
+    const s = state[drpMode];
+    if (!s.start || s.end || d < s.start) {
+      s.start = d; s.end = null;
+      document.getElementById(hintId()).textContent = 'Now click an end date';
+      document.getElementById(doneId()).disabled = true;
+    } else if (d.getTime() === s.start.getTime()) {
+      s.start = null; s.end = null;
+      document.getElementById(hintId()).textContent = 'Click a start date';
+      document.getElementById(doneId()).disabled = true;
     } else {
-      drpEnd = d;
-      document.getElementById('drp-hint').textContent = fmt(drpStart) + '  →  ' + fmt(drpEnd);
-      document.getElementById('drp-done').disabled = false;
+      s.end = d;
+      document.getElementById(hintId()).textContent = fmt(s.start) + '  →  ' + fmt(s.end);
+      document.getElementById(doneId()).disabled = false;
     }
+    drpStart = s.start; drpEnd = s.end;
     drpRender();
   }
 
-  window.drpOpen = function() {
+  window.drpOpenMode = function(mode) {
+    drpMode  = mode || 'out';
+    const s  = state[drpMode];
+    drpStart = s.start; drpEnd = s.end;
     const now = new Date();
     drpViewYear  = now.getFullYear();
     drpViewMonth = now.getMonth();
     drpRender();
-    const overlay = document.getElementById('drp-overlay');
-    overlay.classList.add('open');
-    document.getElementById('drp-trigger').classList.add('active');
-    document.getElementById('drp-done').disabled = !(drpStart && drpEnd);
-    if (drpStart && drpEnd) {
-      document.getElementById('drp-hint').textContent = fmt(drpStart) + '  →  ' + fmt(drpEnd);
-    } else {
-      document.getElementById('drp-hint').textContent = drpStart ? 'Now click an end date' : 'Click a start date';
-    }
+    document.getElementById('drp-overlay').classList.add('open');
+    document.getElementById(trigId()).classList.add('active');
+    document.getElementById(doneId()).disabled = !(drpStart && drpEnd);
+    document.getElementById(hintId()).textContent =
+      (drpStart && drpEnd) ? fmt(drpStart) + '  →  ' + fmt(drpEnd)
+                           : drpStart ? 'Now click an end date' : 'Click a start date';
   };
+
+  // legacy alias so existing onclick="drpOpen()" still works
+  window.drpOpen = () => window.drpOpenMode('out');
 
   window.drpShift = function(dir) {
     drpViewMonth += dir;
@@ -1867,32 +2041,92 @@ async function fetchDest(dest, start, end, apiKey, onStatus) {
   };
 
   window.drpClear = function() {
-    drpStart = null; drpEnd = null;
-    document.getElementById('start-date').value = '';
-    document.getElementById('end-date').value   = '';
-    document.getElementById('drp-label').textContent = 'Select dates';
-    document.getElementById('drp-hint').textContent  = 'Click a start date';
-    document.getElementById('drp-done').disabled = true;
+    const s = state[drpMode];
+    s.start = null; s.end = null; drpStart = null; drpEnd = null;
+    document.getElementById(startId()).value = '';
+    document.getElementById(endId()).value   = '';
+    document.getElementById(labelId()).textContent = 'Select dates';
+    document.getElementById(hintId()).textContent  = 'Click a start date';
+    document.getElementById(doneId()).disabled = true;
     drpRender();
   };
 
   window.drpDone = function() {
-    if (!drpStart || !drpEnd) return;
-    document.getElementById('start-date').value = toYMD(drpStart);
-    document.getElementById('end-date').value   = toYMD(drpEnd);
-    document.getElementById('drp-label').textContent = fmt(drpStart) + '  →  ' + fmt(drpEnd);
+    const s = state[drpMode];
+    if (!s.start || !s.end) return;
+    document.getElementById(startId()).value = toYMD(s.start);
+    document.getElementById(endId()).value   = toYMD(s.end);
+    document.getElementById(labelId()).textContent = fmt(s.start) + '  →  ' + fmt(s.end);
     drpClose();
   };
 
   function drpClose() {
     document.getElementById('drp-overlay').classList.remove('open');
-    document.getElementById('drp-trigger').classList.remove('active');
+    ['drp-trigger','ret-drp-trigger'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.classList.remove('active');
+    });
   }
 })();
 
 /* ═══════════════════════════════════════════════════════════════
+   Trip type + filters state
+═══════════════════════════════════════════════════════════════ */
+let isRoundTrip   = false;
+let filterDirect  = false;
+let filterMaxMiles= 0;
+let currentView   = 'table';
+let returnResults = [];
+let retSortCol = 'miles', retSortDir = 'asc';
+
+function setTripType(t) {
+  isRoundTrip = (t === 'rt');
+  document.getElementById('trip-ow').classList.toggle('active', !isRoundTrip);
+  document.getElementById('trip-rt').classList.toggle('active',  isRoundTrip);
+  document.getElementById('ret-drp-trigger-wrap').style.display = isRoundTrip ? 'block' : 'none';
+  document.getElementById('drp-main-label').textContent = isRoundTrip ? 'Outbound Dates' : 'Date Range';
+}
+
+function toggleDirectFilter() {
+  filterDirect = !filterDirect;
+  document.getElementById('filter-direct-btn').classList.toggle('on', filterDirect);
+  applyFiltersAndRender();
+}
+
+function applyFiltersAndRender() {
+  filterMaxMiles = parseInt(document.getElementById('filter-miles').value) || 0;
+  renderTable();
+  if (isRoundTrip) renderReturnTable();
+}
+
+function applyFilters(results) {
+  const bestMiles = r => r.JMileageCostRaw || r.WMileageCostRaw || r.YMileageCostRaw || 0;
+  return results.filter(r => {
+    if (filterDirect && !r.JDirect) return false;
+    if (filterMaxMiles > 0 && bestMiles(r) > filterMaxMiles) return false;
+    return true;
+  });
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('vbtn-table').classList.toggle('active',   v === 'table');
+  document.getElementById('vbtn-heatmap').classList.toggle('active', v === 'heatmap');
+  document.getElementById('table-wrap-out').style.display  = v === 'table'   ? 'block' : 'none';
+  document.getElementById('heatmap-wrap').style.display    = v === 'heatmap' ? 'block' : 'none';
+  if (v === 'heatmap') renderHeatmap(applyFilters(allResults));
+}
+
+/* ═══════════════════════════════════════════════════════════════
    Search orchestration
 ═══════════════════════════════════════════════════════════════ */
+function filterRaw(raw, programs) {
+  return raw.filter(r => {
+    if (!(r.JMileageCostRaw > 0 || r.YMileageCostRaw > 0 || r.WMileageCostRaw > 0)) return false;
+    const src = r.Source || r.Route?.Source || '';
+    return programs.size === 0 || programs.has(src);
+  });
+}
+
 async function startSearch() {
   hideError(); hideWarning();
 
@@ -1901,55 +2135,66 @@ async function startSearch() {
   saveKey();
 
   const dests    = checkedDests();
-  const programs = checkedPrograms();   // Set of selected source names
+  const programs = checkedPrograms();
   const start    = document.getElementById('start-date').value;
   const end      = document.getElementById('end-date').value;
 
-  if (!dests.length)    { showError('Select at least one destination.'); return; }
+  if (!dests.length)  { showError('Select at least one destination.'); return; }
   if (!programs.size) { showError('Select at least one mileage program.'); return; }
-  if (!start || !end)   { showError('Select a date range using the calendar.'); return; }
-  if (start > end)      { showError('Start date must be before end date.'); return; }
+  if (!start || !end) { showError('Select a date range using the calendar.'); return; }
+  if (start > end)    { showError('Start date must be before end date.'); return; }
+
+  const retStart = document.getElementById('ret-start-date').value;
+  const retEnd   = document.getElementById('ret-end-date').value;
+  if (isRoundTrip && (!retStart || !retEnd)) {
+    showError('Select return dates for round-trip search.'); return;
+  }
 
   setLoading(true, 'Starting search…');
   setProgress(0);
-  document.getElementById('results-section').style.display = 'none';
-  document.getElementById('summary-bar').style.display     = 'none';
-  document.getElementById('debug-panel').style.display     = 'none';
-  allResults = [];
+  document.getElementById('results-section').style.display      = 'none';
+  document.getElementById('return-results-section').style.display = 'none';
+  document.getElementById('summary-bar').style.display          = 'none';
+  document.getElementById('filter-bar').style.display           = 'none';
+  document.getElementById('debug-panel').style.display          = 'none';
+  allResults = []; returnResults = [];
+
+  const origin = getOrigin();
 
   try {
     let done = 0;
-    const total = dests.length;
+    const outTotal = dests.length;
+    const retTotal = isRoundTrip ? dests.length : 0;
+    const grandTotal = outTotal + retTotal;
 
-    const promises = dests.map(dest =>
-      fetchDest(dest, start, end, apiKey, txt => {
-        setLoading(true, `Fetching ${txt}`);
-      }).then(rows => { done++; setProgress((done / total) * 100); return rows; })
+    // Outbound
+    const outPromises = dests.map(dest =>
+      fetchDest(dest, start, end, apiKey, txt => setLoading(true, `Outbound ${txt}`), origin)
+        .then(rows => { done++; setProgress((done / grandTotal) * 100); return rows; })
     );
 
-    const nested = await Promise.all(promises);
-    const raw = nested.flat();
-    const uniqueSrcs = [...new Set(raw.map(r => r.Source || r.Route?.Source || '?'))];
-    const withJ = raw.filter(r => r.JMileageCostRaw > 0 || r.YMileageCostRaw > 0 || r.WMileageCostRaw > 0);
-    // Filter: any cabin with mileage cost, AND only selected programs
-    allResults = raw.filter(r => {
-      if (!(r.JMileageCostRaw > 0 || r.YMileageCostRaw > 0 || r.WMileageCostRaw > 0)) return false;
-      const src = r.Source || r.Route?.Source || '';
-      return programs.size === 0 || programs.has(src);
-    });
-    // Show debug panel
-    const dbg = document.getElementById('debug-panel');
-    const srcCounts = {};
-    withJ.forEach(r => { const s = r.Source || r.Route?.Source || '?'; srcCounts[s] = (srcCounts[s]||0)+1; });
-    document.getElementById('debug-text').innerHTML =
-      `Raw from API: <b>${raw.length}</b> rows &nbsp;|&nbsp; ` +
-      `With J mileage: <b>${withJ.length}</b> &nbsp;|&nbsp; ` +
-      `After program filter: <b>${allResults.length}</b><br>` +
-      `Sources in J results: ${Object.entries(srcCounts).map(([k,v])=>`${k}(${v})`).join(', ') || 'none'}<br>` +
-      `Selected programs: ${[...programs].join(', ')}`;
-    dbg.style.display = 'block';
+    // Return legs (in parallel with outbound)
+    const retPromises = isRoundTrip ? dests.map(dest =>
+      fetchDest(origin, retStart, retEnd, apiKey, txt => setLoading(true, `Return ${txt}`), dest)
+        .then(rows => { done++; setProgress((done / grandTotal) * 100); return rows.map(r => ({ ...r, _retFrom: dest })); })
+    ) : [];
 
-    if (allResults.length === 0) {
+    const [outNested, retNested] = await Promise.all([
+      Promise.all(outPromises),
+      Promise.all(retPromises),
+    ]);
+
+    allResults    = filterRaw(outNested.flat(), programs);
+    returnResults = filterRaw(retNested.flat(), programs);
+
+    // Debug panel
+    document.getElementById('debug-text').innerHTML =
+      `Outbound: <b>${allResults.length}</b> results` +
+      (isRoundTrip ? ` &nbsp;|&nbsp; Return: <b>${returnResults.length}</b> results` : '') +
+      ` &nbsp;|&nbsp; Programs: ${[...programs].join(', ')}`;
+    document.getElementById('debug-panel').style.display = 'block';
+
+    if (allResults.length === 0 && returnResults.length === 0) {
       showError('No availability found. Try expanding the date range or selecting more programs.');
     } else {
       displayResults();
@@ -2007,74 +2252,169 @@ function updateSortHeaders() {
 ═══════════════════════════════════════════════════════════════ */
 function displayResults() {
   sortCol = 'miles'; sortDir = 'asc';
+  retSortCol = 'miles'; retSortDir = 'asc';
+  currentView = 'table';
   renderTable();
   updateSortHeaders();
   renderSummary();
-  document.getElementById('results-section').style.display = 'block';
-  document.getElementById('summary-bar').style.display     = 'flex';
+  document.getElementById('results-section').style.display        = 'block';
+  document.getElementById('summary-bar').style.display            = 'flex';
+  document.getElementById('filter-bar').style.display             = 'flex';
+  document.getElementById('filter-count').textContent             = '';
+  document.getElementById('table-wrap-out').style.display         = 'block';
+  document.getElementById('heatmap-wrap').style.display           = 'none';
+  document.getElementById('vbtn-table').classList.add('active');
+  document.getElementById('vbtn-heatmap').classList.remove('active');
+  if (isRoundTrip && returnResults.length > 0) {
+    renderReturnTable();
+    document.getElementById('return-results-section').style.display = 'block';
+  }
+}
+
+function buildRow(r, destLabel, bookOrigin) {
+  const dest     = destLabel || r.Route?.DestinationAirport || r.DestinationAirport || '?';
+  const prog     = r.Source || r.Route?.Source || 'unknown';
+  const miles    = r.JMileageCostRaw || 0;
+  const seats    = r.JRemainingSeats != null ? r.JRemainingSeats : '?';
+  const isDirect = !!r.JDirect;
+  const taxes    = r.JTotalTaxesRaw ?? null;
+  const airlines = r.JAirlines || '';
+  const isCheap  = miles > 0 && miles < 100_000;
+  const info     = PROGRAMS[prog] || { label: prog, color: 'var(--muted)', bg: 'transparent', rowCls: '', amexFactor: null, amexNote: null, deltaFee: false };
+  const cityName = AIRPORTS[dest] || '';
+  const badgeStyle = `color:${info.color};background:${info.bg};border:1px solid ${info.color}30`;
+  let amexCell = '—';
+  if (miles > 0 && info.amexFactor != null) {
+    const pts = Math.ceil(miles / info.amexFactor);
+    amexCell = pts.toLocaleString('en-US');
+    if (info.amexNote) amexCell += ` <span class="amex-note${info.deltaFee ? ' warn' : ''}">(${info.amexNote})</span>`;
+  }
+  const yMiles = r.YMileageCostRaw || 0;
+  const wMiles = r.WMileageCostRaw || 0;
+  return `<tr class="${info.rowCls}${isCheap ? ' cheap' : ''}">
+    <td class="td-date">${fmtDate(r.Date)}</td>
+    <td><strong>${dest}</strong>${cityName ? ` <span style="color:var(--muted);font-size:11px">${cityName}</span>` : ''}</td>
+    <td><span class="prog-badge" style="${badgeStyle}">${info.label}</span></td>
+    <td class="td-miles">${yMiles > 0 ? fmtMiles(yMiles) : '—'}</td>
+    <td class="td-miles">${wMiles > 0 ? fmtMiles(wMiles) : '—'}</td>
+    <td class="td-miles">${fmtMiles(miles)}</td>
+    <td class="td-amex">${amexCell}</td>
+    <td>${seats}</td>
+    <td>${isDirect ? '<span class="route-badge direct-yes">✈ Direct</span>' : '<span class="route-badge direct-no">⟳ Connecting</span>'}</td>
+    <td style="color:var(--muted);font-size:12px">${airlines || '—'}</td>
+    <td>${taxes != null && taxes > 0 ? '$' + Math.ceil(taxes / 100).toLocaleString('en-US') : '—'}</td>
+    <td>${bookingLink(prog, bookOrigin || getOrigin(), dest, r.Date, airlines)}</td>
+  </tr>`;
 }
 
 function renderTable() {
-  const sorted = [...allResults].sort((a, b) => {
+  const filtered = applyFilters(allResults);
+  const sorted = [...filtered].sort((a, b) => {
     const av = getVal(a, sortCol), bv = getVal(b, sortCol);
     const cmp = av < bv ? -1 : av > bv ? 1 : 0;
     return sortDir === 'asc' ? cmp : -cmp;
   });
 
-  document.getElementById('results-title').textContent =
-    `${sorted.length.toLocaleString('en-US')} Result${sorted.length !== 1 ? 's' : ''}`;
+  const total = allResults.length;
+  const shown = sorted.length;
+  document.getElementById('results-title').textContent = `${shown.toLocaleString('en-US')} Result${shown !== 1 ? 's' : ''}`;
+  document.getElementById('filter-count').textContent  = shown < total ? `Showing ${shown} of ${total}` : '';
 
   const tbody = document.getElementById('results-tbody');
   if (!sorted.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="12">No results to display.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="12">No results match the current filters.</td></tr>';
     return;
   }
+  tbody.innerHTML = sorted.map(r => buildRow(r, null, getOrigin())).join('');
+}
 
+function renderReturnTable() {
+  const filtered = applyFilters(returnResults);
+  const sorted = [...filtered].sort((a, b) => {
+    const av = getVal(a, retSortCol), bv = getVal(b, retSortCol);
+    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+    return retSortDir === 'asc' ? cmp : -cmp;
+  });
+  const tbody = document.getElementById('return-tbody');
+  if (!sorted.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="12">No return results.</td></tr>';
+    return;
+  }
   tbody.innerHTML = sorted.map(r => {
-    const dest     = r.Route?.DestinationAirport || r.DestinationAirport || '?';
-    const prog     = r.Source || r.Route?.Source || 'unknown';
-    const miles    = r.JMileageCostRaw || 0;
-    const seats    = r.JRemainingSeats != null ? r.JRemainingSeats : '?';
-    const isDirect = !!r.JDirect;
-    const taxes    = r.JTotalTaxesRaw ?? null;
-    const airlines = r.JAirlines || '';
-    const isCheap  = miles > 0 && miles < 100_000;
-    const info     = PROGRAMS[prog] || { label: prog, color: 'var(--muted)', bg: 'transparent', rowCls: '', amexRatio: null, amexNote: null, deltaFee: false };
-    const cityName = AIRPORTS[dest] || '';
-
-    // Badge style derived from program colour
-    const badgeStyle = `color:${info.color};background:${info.bg};border:1px solid ${info.color}30`;
-
-    // Amex column
-    let amexCell = '—';
-    if (miles > 0 && info.amexFactor != null) {
-      const amexPtsNeeded = Math.ceil(miles / info.amexFactor);
-      amexCell = amexPtsNeeded.toLocaleString('en-US');
-      if (info.amexNote) {
-        amexCell += ` <span class="amex-note${info.deltaFee ? ' warn' : ''}">(${info.amexNote})</span>`;
-      }
-    }
-
-    const yMiles = r.YMileageCostRaw || 0;
-    const wMiles = r.WMileageCostRaw || 0;
-
-    return `<tr class="${info.rowCls}${isCheap ? ' cheap' : ''}">
-      <td class="td-date">${fmtDate(r.Date)}</td>
-      <td><strong>${dest}</strong>${cityName ? ` <span style="color:var(--muted);font-size:11px">${cityName}</span>` : ''}</td>
-      <td><span class="prog-badge" style="${badgeStyle}">${info.label}</span></td>
-      <td class="td-miles">${yMiles > 0 ? fmtMiles(yMiles) : '—'}</td>
-      <td class="td-miles">${wMiles > 0 ? fmtMiles(wMiles) : '—'}</td>
-      <td class="td-miles">${fmtMiles(miles)}</td>
-      <td class="td-amex">${amexCell}</td>
-      <td>${seats}</td>
-      <td>${isDirect
-        ? '<span class="route-badge direct-yes">✈ Direct</span>'
-        : '<span class="route-badge direct-no">⟳ Connecting</span>'}</td>
-      <td style="color:var(--muted);font-size:12px">${airlines || '—'}</td>
-      <td>${taxes != null && taxes > 0 ? '$' + Math.ceil(taxes / 100).toLocaleString('en-US') : '—'}</td>
-      <td>${bookingLink(prog, 'EZE', dest, r.Date, airlines)}</td>
-    </tr>`;
+    const from = r._retFrom || r.Route?.OriginAirport || '?';
+    return buildRow(r, from, from);
   }).join('');
+}
+
+function sortRetBy(col) {
+  if (retSortCol === col) retSortDir = retSortDir === 'asc' ? 'desc' : 'asc';
+  else { retSortCol = col; retSortDir = 'asc'; }
+  renderReturnTable();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Heatmap
+═══════════════════════════════════════════════════════════════ */
+function renderHeatmap(results) {
+  const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DAYS_SHORT   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const bestMiles    = r => r.JMileageCostRaw || r.WMileageCostRaw || r.YMileageCostRaw || 0;
+
+  // Group by destination, then by YYYY-MM-DD → cheapest miles
+  const byDest = {};
+  results.forEach(r => {
+    const dest = r.Route?.DestinationAirport || r.DestinationAirport || '?';
+    const date = r.Date?.slice(0, 10);
+    if (!date) return;
+    const m = bestMiles(r);
+    if (!m) return;
+    if (!byDest[dest]) byDest[dest] = {};
+    if (!byDest[dest][date] || m < byDest[dest][date]) byDest[dest][date] = m;
+  });
+
+  function hmClass(m) {
+    if (!m) return 'hm-none';
+    if (m < 50_000)  return 'hm-great';
+    if (m < 80_000)  return 'hm-good';
+    if (m < 120_000) return 'hm-ok';
+    if (m < 180_000) return 'hm-pricey';
+    return 'hm-high';
+  }
+
+  function fmtK(m) { return m >= 1000 ? Math.round(m / 1000) + 'k' : m; }
+
+  const content = document.getElementById('heatmap-content');
+  if (!Object.keys(byDest).length) { content.innerHTML = '<p style="color:var(--muted)">No data to display.</p>'; return; }
+
+  content.innerHTML = Object.entries(byDest).map(([dest, dayMap]) => {
+    const dates = Object.keys(dayMap).sort();
+    const first = new Date(dates[0] + 'T00:00:00');
+    const last  = new Date(dates[dates.length - 1] + 'T00:00:00');
+
+    // Collect months to render
+    const months = [];
+    let cur = new Date(first.getFullYear(), first.getMonth(), 1);
+    while (cur <= last) { months.push({ y: cur.getFullYear(), m: cur.getMonth() }); cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1); }
+
+    const monthsHtml = months.map(({ y, m }) => {
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      const firstDow    = new Date(y, m, 1).getDay();
+      let cells = DAYS_SHORT.map(d => `<div class="hm-dow">${d}</div>`).join('');
+      for (let i = 0; i < firstDow; i++) cells += `<div class="hm-cell hm-empty"></div>`;
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const mi = dayMap[dateStr];
+        cells += `<div class="hm-cell ${hmClass(mi)}" title="${mi ? fmtK(mi) + ' mi — ' + dateStr : 'No data — ' + dateStr}">${day}</div>`;
+      }
+      return `<div><div class="hm-month-title">${MONTHS_SHORT[m]} ${y}</div><div class="hm-grid">${cells}</div></div>`;
+    }).join('');
+
+    const cityName = AIRPORTS[dest] || '';
+    return `<div class="hm-dest">
+      <div class="hm-dest-title">${dest}${cityName ? ' · ' + cityName : ''}</div>
+      <div class="hm-months">${monthsHtml}</div>
+    </div>`;
+  }).join('');;
 }
 
 function renderSummary() {
