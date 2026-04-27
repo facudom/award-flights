@@ -1876,24 +1876,44 @@ async function fetchPage(params, apiKey, cursor) {
 }
 
 async function fetchDest(dest, start, end, apiKey, onStatus, origin) {
-  const params = {
-    origin_airport:      origin || getOrigin(),
-    destination_airport: dest,
-    start_date:          start,
-    end_date:            end,
-    take:                '1000',
-  };
+  const baseOrigin = origin || getOrigin();
 
-  let results = [], cursor = null, page = 0;
-  while (true) {
-    page++;
-    onStatus(`${dest} page ${page}…`);
-    const data = await fetchPage(params, apiKey, cursor);
-    results.push(...(data.data || data.results || []));
-    if (data.hasMore && data.cursor) cursor = data.cursor;
-    else break;
+  // Split into 14-day chunks to avoid seats.aero "too broad" limits
+  const chunks = [];
+  let cur = new Date(start + 'T00:00:00');
+  const endDate = new Date(end + 'T00:00:00');
+  while (cur <= endDate) {
+    const chunkEnd = new Date(cur);
+    chunkEnd.setDate(chunkEnd.getDate() + 13);
+    if (chunkEnd > endDate) chunkEnd.setTime(endDate.getTime());
+    chunks.push({
+      s: cur.toISOString().slice(0, 10),
+      e: chunkEnd.toISOString().slice(0, 10),
+    });
+    cur = new Date(chunkEnd);
+    cur.setDate(cur.getDate() + 1);
   }
-  return results;
+
+  let allRows = [];
+  for (const { s, e } of chunks) {
+    const params = {
+      origin_airport:      baseOrigin,
+      destination_airport: dest,
+      start_date:          s,
+      end_date:            e,
+      take:                '1000',
+    };
+    let cursor = null, page = 0;
+    while (true) {
+      page++;
+      onStatus(`${dest} ${s}→${e} p${page}`);
+      const data = await fetchPage(params, apiKey, cursor);
+      allRows.push(...(data.data || data.results || []));
+      if (data.hasMore && data.cursor) cursor = data.cursor;
+      else break;
+    }
+  }
+  return allRows;
 }
 
 /* ═══════════════════════════════════════════════════════════════
